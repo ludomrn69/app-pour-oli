@@ -33,6 +33,7 @@
     <link rel="preconnect" href="https://www.gstatic.com">
     <link rel="preconnect" href="https://firebasestorage.googleapis.com">
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+ 
     <style>
         * {
             margin: 0;
@@ -348,30 +349,35 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
 
-        // Configuration Firebase (remplace par tes vraies clés)
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-            apiKey: "ton-api-key",
+            apiKey: "AIzaSyCgQKaAsFmfrD_ejm5uRYS5QE1nMN-qTfM",
             authDomain: "app-pour-oli.firebaseapp.com",
             projectId: "app-pour-oli",
-            storageBucket: "app-pour-oli.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "ton-app-id"
+            storageBucket: "app-pour-oli.firebasestorage.app",
+            messagingSenderId: "80626914562",
+            appId: "1:80626914562:web:3f51556e811a287580de1b",
+            measurementId: "G-R9E5D06XB6"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
 
         // Load memories from Firebase
         async function loadMemories() {
             const container = document.getElementById('memoriesContainer');
             
             try {
-                const q = query(collection(db, 'memories'), orderBy('date', 'desc'));
-                const querySnapshot = await getDocs(q);
+                // On récupère tous les souvenirs sans tri (on le fera côté client)
+                const querySnapshot = await getDocs(collection(db, 'memories'));
                 
                 if (querySnapshot.empty) {
                     container.innerHTML = `
@@ -383,6 +389,16 @@
                     return;
                 }
                 
+                // Convertir en array et trier par date (la plus récente en premier)
+                const memories = [];
+                querySnapshot.forEach((doc) => {
+                    const memory = doc.data();
+                    memories.push(memory);
+                });
+                
+                // Tri par date décroissante (plus récente en premier)
+                memories.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
                 container.innerHTML = '';
                 const colors = [
                     '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
@@ -391,11 +407,10 @@
                     '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
                 ];
                 
-                querySnapshot.forEach((doc, index) => {
-                    const memory = doc.data();
+                memories.forEach((memory, index) => {
                     const randomColor = colors[index % colors.length];
                     
-                    // Format date
+                    // Format date - on utilise la date renseignée dans le formulaire
                     const date = new Date(memory.date);
                     const formattedDate = date.toLocaleDateString('fr-FR', {
                         day: '2-digit',
