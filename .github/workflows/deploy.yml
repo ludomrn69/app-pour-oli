@@ -1,4 +1,4 @@
-name: Deploy App pour Oli 💕
+name: Deploy App pour Oli
 
 # Déclencher l'action à chaque push sur main
 on:
