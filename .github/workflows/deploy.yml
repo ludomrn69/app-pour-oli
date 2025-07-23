@@ -70,9 +70,14 @@ jobs:
         subject: "Nouveau déploiement de l'application Oli"
         to: ludovicmarion70@gmail.com
         from: "App Oli"
+        html_body: |
+          <h2>Coucou,</h2>
+          <p>L'application Oli a bien été déployée 🎉</p>
+          <p>👉 <a href="https://ludomrn69.github.io/app-pour-oli">Voir l'app en ligne</a></p>
+          <p style="font-size:20px;">❤️</p>
         text_body: |
           Bonjour,
 
-          Petite mise à jour de l'application Oli !
-          Le lien de l'app ma vie : https://ludomrn69.github.io/app-pour-oli
-          Je t'aime toi tu sais ❤️
+          L'application Oli a bien été déployée 🎉
+          Voir l'app en ligne : https://ludomrn69.github.io/app-pour-oli
+          ❤️
