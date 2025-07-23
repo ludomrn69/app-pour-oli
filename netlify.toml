@@ -1,4 +1,4 @@
-# netlify.toml
+
 [build]
   # Dossier de publication (optionnel si les fichiers sont à la racine)
   publish = "."
