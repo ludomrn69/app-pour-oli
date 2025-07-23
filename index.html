@@ -16,9 +16,73 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Ajuster le body pour la navbar */
+        body {
+            padding-top: 70px;
         }
 
         .container {
@@ -169,6 +233,27 @@
 
         /* Mobile optimizations */
         @media (max-width: 480px) {
+            .navbar {
+                padding: 8px 15px;
+            }
+            
+            .navbar-brand {
+                font-size: 16px;
+            }
+            
+            .navbar-nav {
+                gap: 10px;
+            }
+            
+            .nav-link {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            body {
+                padding-top: 60px;
+            }
+            
             .container {
                 margin: 10px;
                 max-width: calc(100vw - 20px);
@@ -190,19 +275,38 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-brand">App pour Oli ❤️</div>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" onclick="showPage('home')">Accueil</a>
+            </li>
+            <li class="nav-item" display="none">
+                <a href="#" class="nav-link" onclick="showPage('memories')">Souvenirs</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="showPage('messages')">Messages</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" onclick="showPage('gallery')">Photos</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container" id="mainContainer">
         <div class="header">
             <div class="traffic-lights">
                 <div class="traffic-light red"></div>
                 <div class="traffic-light yellow"></div>
                 <div class="traffic-light green"></div>
             </div>
-            <div class="app-title">Daily Standup 💕</div>
+            <div class="app-title">Tu me manques déjà beaucouppppp</div>
         </div>
         
         <div class="content">
             <div class="photo-container">
-                <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=" alt="Notre photo" id="couplePhoto">
+                <img src="oli.png" alt="Ma petite Oli ❤️" id="couplePhoto">
             </div>
             
             <div class="main-message">Tu me manques ❤️</div>
@@ -210,18 +314,17 @@
             <div class="date-time" id="currentDateTime"></div>
             
             <div class="love-message">
-                Aujourd'hui, comme tous les jours, tu me manques énormément. 
-                Chaque moment sans toi me fait réaliser à quel point tu es précieuse pour moi. 
-                J'ai hâte de te retrouver et de partager de nouveaux souvenirs ensemble.
+                Mon bébé je t'aime tellementtttt<br>
+                Tu me manques déjà beaucouppppp
             </div>
             
-            <div class="hearts">💖 💕 💖 💕 💖</div>
+            <div class="hearts">❤️❤️❤️❤️❤️❤️❤️❤️</div>
             
-            <button class="button" onclick="sendLove()">Envoyer tout mon amour 💌</button>
+            <button class="button" onclick="sendLove()">Envoyer un peu de love</button>
         </div>
         
         <div class="footer">
-            Créé avec 💝 rien que pour toi
+            Créé juste pour toi
         </div>
     </div>
 

@@ -1,0 +1,66 @@
+name: Deploy App pour Oli 💕
+
+# Déclencher l'action à chaque push sur main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Permissions nécessaires pour GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job de build et déploiement
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 1. Récupérer le code
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    # 2. Configurer Pages
+    - name: 🔧 Setup Pages
+      uses: actions/configure-pages@v4
+
+    # 3. Optionnel : Traitement des fichiers (ex: optimisation d'images)
+    - name: 🎨 Process files
+      run: |
+        echo "Processing files for Oli's app..."
+        # Tu peux ajouter ici du processing (compression images, etc.)
+        ls -la
+    
+    # 4. Upload des fichiers
+    - name: 📦 Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+
+    # 5. Déploiement sur GitHub Pages
+    - name: 🚀 Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+  # Job optionnel : Notification de succès
+  notify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: 💌 Success notification
+      run: |
+        echo "🎉 App déployée avec succès pour Oli !"
+        echo "URL: https://ludomrn69.github.io/app-pour-oli"
