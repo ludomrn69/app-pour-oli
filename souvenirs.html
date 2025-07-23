@@ -379,7 +379,7 @@
             container.innerHTML = `<div class="loading">Chargement des souvenirs... ✨</div>`;
 
             const storage = getStorage();
-            const memoriesRef = ref(storage, 'souvenirs');
+            const memoriesRef = ref(storage, 'memories');
 
             try {
                 const res = await listAll(memoriesRef);
