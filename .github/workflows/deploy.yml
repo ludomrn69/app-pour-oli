@@ -62,5 +62,4 @@ jobs:
     steps:
     - name: 💌 Success notification
       run: |
-        echo "🎉 App déployée avec succès pour Oli !"
-        echo "URL: https://ludomrn69.github.io/app-pour-oli"
+        echo -e "Bonjour,\n\nL'application Oli a bien été déployée 🎉\n\nURL : https://ludomrn69.github.io/app-pour-oli\n\n❤️" | mail -s "✅ Déploiement réussi - App pour Oli" "ludovicmarion70@gmail.com"

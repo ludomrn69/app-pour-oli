@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -410,6 +409,74 @@
                 height: 100px;
             }
         }
+
+        .messages-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: white;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            word-wrap: break-word;
+        }
+
+        .message-bubble.left {
+            background: #48dbfb;
+            align-self: flex-start;
+        }
+
+        .message-bubble.right {
+            background: #ff6b6b;
+            align-self: flex-end;
+        }
+
+        .conversations-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .conversation-block {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+            text-align: center;
+        }
+
+        .conversation-date {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .conversation-image {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+        .conversation-text {
+            font-size: 14px;
+            color: #34495e;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -418,10 +485,10 @@
         <div class="navbar-brand">App pour Oli ❤️</div>
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a href="index.html" class="nav-link active">Accueil</a>
+                <a href="index.html" class="nav-link">Accueil</a>
             </li>
             <li class="nav-item">
-                <a href="souvenirs.html" class="nav-link">Souvenirs</a>
+                <a href="souvenirs.html" class="nav-link active">Souvenirs</a>
             </li>
             <li class="nav-item">
                 <a href="messages.html" class="nav-link">Messages</a>
@@ -440,109 +507,24 @@
         </div>
         
         <div class="content">
-            <div class="photo-container">
-                <img src="oli.png" alt="Ma petite Oli ❤️" id="couplePhoto">
+            <h2 class="main-message">Nos Conversations 💬</h2>
+            <div class="conversations-container">
+                <div class="conversation-block">
+                    <div class="conversation-date">12 juillet 2024</div>
+                    <div class="conversation-text">Une journée où tu m’as fait sourire sans le savoir 😘</div>
+                    <img src="conversation1.jpg" alt="Conversation 1" class="conversation-image">
+                </div>
+                <div class="conversation-block">
+                    <div class="conversation-date">28 juin 2024</div>
+                    <div class="conversation-text">Ce message-là m’a réchauffé le cœur ❤️</div>
+                    <img src="conversation2.jpg" alt="Conversation 2" class="conversation-image">
+                </div>
             </div>
-            
-            <div class="main-message">Tu me manques ❤️</div>
-            
-            <div class="date-time" id="currentDateTime"></div>
-            
-            <div class="love-message">
-                Mon bébé je t'aime tellementtttt<br>
-                Tu me manques déjà beaucouppppp<br>
-                Trop hate de te re prendre dans mes bras
-            </div>
-            
-            <div class="hearts">❤️❤️❤️❤️❤️❤️❤️</div>
-            
-            <button class="button" onclick="sendLove()">Envoyer un peu de love 💌</button>
-        </div>
-        
-        <div class="footer">
-            Créé juste pour toi
         </div>
     </div>
 
     <script>
-       
-        function updateDateTime() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            document.getElementById('currentDateTime').textContent = 
-                now.toLocaleDateString('fr-FR', options);
-        }
-
-        // Send love animation
-        function sendLove() {
-            const button = document.querySelector('.button');
-            const originalText = button.textContent;
-            
-            button.textContent = 'Envoyé un peu de love! ❤️';
-            button.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
-            
-            // Create floating hearts
-            for (let i = 0; i < 10; i++) {
-                createFloatingHeart();
-            }
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.style.background = 'linear-gradient(135deg, #ff6b6b, #feca57)';
-            }, 3000);
-        }
-
-        function createFloatingHeart() {
-            const heart = document.createElement('div');
-            heart.innerHTML = '❤️💙';
-            heart.style.position = 'fixed';
-            heart.style.fontSize = '20px';
-            heart.style.pointerEvents = 'none';
-            heart.style.zIndex = '1000';
-            heart.style.left = Math.random() * window.innerWidth + 'px';
-            heart.style.top = window.innerHeight + 'px';
-            heart.style.animation = 'floatUp 3s ease-out forwards';
-            
-            document.body.appendChild(heart);
-            
-            setTimeout(() => {
-                heart.remove();
-            }, 3000);
-        }
-
-        // Add CSS for floating hearts animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes floatUp {
-                0% {
-                    transform: translateY(0) rotate(0deg);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(-100vh) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize
-        updateDateTime();
-        setInterval(updateDateTime, 60000); // Update every minute
-
-        // Try to load the actual photo
-        const img = document.getElementById('couplePhoto');
-        const actualPhotoSrc = 'data:image/jpeg;base64,' + '{{ PHOTO_BASE64_HERE }}';
         
-        // You'll need to replace {{ PHOTO_BASE64_HERE }} with the actual base64 of your photo
-        // For now, it will show a placeholder
     </script>
 </body>
 </html>
