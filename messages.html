@@ -306,7 +306,7 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">App pour Oli ❤️</div>
+        <div class="navbar-brand">Ludo & Oli ❤️</div>
         <ul class="navbar-nav">
             <li><a href="index.html" class="nav-link">Accueil</a></li>
             <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
@@ -342,6 +342,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -368,7 +369,8 @@
             container.innerHTML = `<div class="loading">Chargement des messages... 💬</div>`;
 
             const db = getFirestore();
-            const snapshot = await getDocs(collection(db, "conversations"));
+            const q = query(collection(db, "conversations"), orderBy("date", "desc"));
+            const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
                 container.innerHTML = `
@@ -401,7 +403,12 @@
                 block.className = 'conversation-block';
                 block.style.borderLeftColor = colors[i % colors.length];
                 block.innerHTML = `
-                    <div class="conversation-date">${formattedDate}</div>
+                    <div class="memory-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 class="memory-title" style="font-size: 16px; font-weight: 700; color: #2c3e50; margin: 0;">${data.title || "Sans titre"}</h3>
+                        <div class="memory-date" style="font-size: 12px; color: #7f8c8d; background: rgba(255, 107, 107, 0.1); padding: 4px 8px; border-radius: 10px; font-weight: 500;">
+                            ${formattedDate}
+                        </div>
+                    </div>
                     <div class="conversation-text">${data.description}</div>
                     <img src="${data.photoURL}" class="conversation-image" alt="${data.description}">
                 `;

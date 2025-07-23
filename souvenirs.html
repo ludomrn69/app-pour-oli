@@ -319,7 +319,7 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">App pour Oli ❤️</div>
+        <div class="navbar-brand">Ludo & Oli ❤️</div>
         <ul class="navbar-nav">
             <li><a href="index.html" class="nav-link">Accueil</a></li>
             <li><a href="souvenirs.html" class="nav-link active">Souvenirs</a></li>
@@ -398,8 +398,11 @@
             ];
 
             let i = 0;
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            const sortedDocs = snapshot.docs
+                .map(doc => ({ id: doc.id, data: doc.data() }))
+                .sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
+
+            sortedDocs.forEach(({ data }) => {
                 const formattedDate = new Date(data.date).toLocaleDateString('fr-FR', {
                     day: '2-digit',
                     month: 'long',
