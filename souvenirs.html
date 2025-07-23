@@ -111,7 +111,7 @@
             backdrop-filter: blur(20px);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2);
-            max-width: 400px;
+            max-width: 600px;
             width: 100%;
             overflow: hidden;
             transform: translateY(0);
@@ -151,8 +151,8 @@
 
         .app-title {
             color: white;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 900;
             margin-top: 10px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
@@ -339,7 +339,6 @@
         </div>
         
         <div class="content">
-            <h2 class="main-message">Nos Souvenirs 💫</h2>
             <div id="memoriesContainer" class="memories-grid">
                 <div class="loading">
                     Chargement des souvenirs... ✨
@@ -416,8 +415,8 @@
                         <div class="memory-date">${formattedDate}</div>
                     </div>
                     <div class="memory-content">
-                        <img src="${data.photoURL}" alt="${data.title}" class="memory-photo">
                         <p class="memory-text">${data.description}</p>
+                        <img src="${data.photoURL}" alt="${data.title}" class="memory-photo">
                     </div>
                 `;
 

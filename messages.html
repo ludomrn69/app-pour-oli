@@ -150,12 +150,12 @@
 
         .app-title {
             color: white;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 900;
             margin-top: 10px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-
+        
         .content {
             padding: 30px;
             text-align: center;
@@ -333,8 +333,6 @@
                 </div>
             </div>
             
-            <!-- Compteur de jours toujours présent -->
-            <div class="counter-text" id="dayCounter"></div>
         </div>
     </div>
 
@@ -363,18 +361,6 @@
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
 
-        // Update day counter
-        function updateDayCounter() {
-            const startDate = new Date("2025-04-14");
-            const today = new Date();
-            const diffTime = today - startDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-            const counter = document.getElementById("dayCounter");
-            if (counter) {
-                counter.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️`;
-            }
-        }
 
         // Load conversations from Firestore
         async function loadConversations() {
@@ -382,7 +368,7 @@
             container.innerHTML = `<div class="loading">Chargement des messages... 💬</div>`;
 
             const db = getFirestore();
-            const snapshot = await getDocs(collection(db, "messages"));
+            const snapshot = await getDocs(collection(db, "conversations"));
 
             if (snapshot.empty) {
                 container.innerHTML = `
@@ -469,7 +455,6 @@
 
         // Load content when page loads
         window.addEventListener('load', () => {
-            updateDayCounter();
             loadConversations();
         });
     </script>

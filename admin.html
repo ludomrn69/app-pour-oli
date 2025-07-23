@@ -276,6 +276,14 @@
         </ul>
     </nav>
 
+    <!-- Toggle souvenirs/messages -->
+    <div id="toggleContainer" style="display: none; margin-top: 80px; text-align: center;">
+        <div style="display: inline-flex; background: #f1f1f1; border-radius: 30px; padding: 5px; box-shadow: inset 0 0 5px rgba(0,0,0,0.1);">
+            <button id="showMemoriesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: #ff6b6b; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Souvenirs</button>
+            <button id="showMessagesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: transparent; color: #333; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Messages</button>
+        </div>
+    </div>
+
     <!-- Login Form (hidden after login) -->
     <div id="loginContainer" class="login-container">
         <div class="section-header">
@@ -435,6 +443,7 @@
             if (user) {
                 loginContainer.style.display = 'none';
                 adminInterface.style.display = 'grid';
+                document.getElementById("toggleContainer").style.display = "block";
                 // Ajout du message de bienvenue personnalisé dans la navbar
                 const navbar = document.querySelector('.navbar');
                 const greeting = document.createElement('div');
@@ -597,19 +606,24 @@
 
     snapshot.forEach((docSnap) => {
         const data = docSnap.data();
+        // Format date in dd/mm/YYYY (fr-FR)
+        const formattedDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '';
         const card = document.createElement('div');
         card.style.border = '1px solid #ccc';
         card.style.padding = '10px';
         card.style.marginBottom = '10px';
         card.style.borderRadius = '10px';
         card.style.background = '#fff';
+        card.style.marginTop = '20px';
 
         card.innerHTML = `
-            <strong>${data.title || 'Message'}</strong><br>
-            <small>${data.date}</small><br>
-            ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:80px;margin:5px 0;">` : ''}
-            <p style="font-size: 14px;">${data.description}</p>
-            <button style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <strong>${data.title || 'Message'}</strong>
+                <small>${formattedDate}</small>
+            </div>
+            <p style="font-size: 14px; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 10px;">${data.description}</p>
+            ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:120px; margin:10px 0; display: block;">` : ''}
+            <button style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;display:block;margin-top:10px;">
                 Supprimer
             </button>
         `;
@@ -634,6 +648,41 @@
         container.appendChild(card);
     });
 }
+        // Toggle affichage souvenirs/messages
+        const memorySections = [
+            document.querySelector("#memoryForm").closest(".admin-section"),
+            document.querySelector("#deleteMemoriesList").closest(".admin-section")
+        ];
+        const messageSections = [
+            document.querySelector("#messageForm").closest(".admin-section"),
+            document.querySelector("#deleteMessagesList").closest(".admin-section")
+        ];
+
+        const memoriesBtn = document.getElementById("showMemoriesBtn");
+        const messagesBtn = document.getElementById("showMessagesBtn");
+
+        memoriesBtn.addEventListener("click", () => {
+            memorySections.forEach(el => el.style.display = "block");
+            messageSections.forEach(el => el.style.display = "none");
+
+            memoriesBtn.style.background = "#ff6b6b";
+            memoriesBtn.style.color = "white";
+            messagesBtn.style.background = "transparent";
+            messagesBtn.style.color = "#333";
+        });
+
+        messagesBtn.addEventListener("click", () => {
+            memorySections.forEach(el => el.style.display = "none");
+            messageSections.forEach(el => el.style.display = "block");
+
+            messagesBtn.style.background = "#feca57";
+            messagesBtn.style.color = "white";
+            memoriesBtn.style.background = "transparent";
+            memoriesBtn.style.color = "#333";
+        });
+
+        // Initial state
+        memoriesBtn.click();
     </script>
 </body>
 </html>
