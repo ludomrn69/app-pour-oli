@@ -3,7 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu me manques ❤️</title>
+    <title>Messages - Tu me manques ❤️</title>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://firebasestorage.googleapis.com;
+        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+        font-src 'self' data:;
+        object-src 'none';
+        frame-ancestors 'none';
+    ">
+
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Progressive Web App -->
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="App pour Oli">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+
+    <!-- Preconnect pour améliorer les performances -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <style>
         * {
             margin: 0;
@@ -20,9 +49,9 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            padding-top: 70px;
         }
 
-        /* Navigation Bar */
         .navbar {
             position: fixed;
             top: 0;
@@ -54,10 +83,6 @@
             list-style: none;
         }
 
-        .nav-item {
-            position: relative;
-        }
-
         .nav-link {
             text-decoration: none;
             color: #2c3e50;
@@ -78,11 +103,6 @@
             background: linear-gradient(135deg, #ff6b6b, #feca57);
             color: white;
             box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
-        }
-
-        /* Ajuster le body pour la navbar */
-        body {
-            padding-top: 70px;
         }
 
         .container {
@@ -141,29 +161,6 @@
             text-align: center;
         }
 
-        .photo-container {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 25px;
-            overflow: hidden;
-            border: 4px solid rgba(255, 107, 107, 0.2);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .photo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .main-message {
             font-size: 24px;
             font-weight: 700;
@@ -175,92 +172,43 @@
             background-clip: text;
         }
 
-        .date-time {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .love-message {
-            font-size: 16px;
-            color: #34495e;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255, 107, 107, 0.05);
-            border-radius: 15px;
-            border-left: 4px solid #ff6b6b;
-        }
-
-        .hearts {
-            font-size: 20px;
-            margin: 20px 0;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .button {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-        }
-
-        .footer {
-            padding: 20px;
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 12px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(0, 0, 0, 0.01);
-        }
-
-        /* Memory cards styles */
-        .memories-grid {
-            display: grid;
+        .conversations-container {
+            display: flex;
+            flex-direction: column;
             gap: 20px;
             max-height: 400px;
             overflow-y: auto;
             padding-right: 10px;
         }
 
-        .memory-card {
+        .conversations-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .conversations-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .conversations-container::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-color, #ff6b6b);
+            border-radius: 10px;
+        }
+
+        .conversation-block {
             background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
             border-radius: 15px;
-            padding: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+            text-align: center;
             border-left: 4px solid #ff6b6b;
             transition: all 0.3s ease;
-            animation: slideIn 0.5s ease-out;
         }
 
-        .memory-card:hover {
+        .conversation-block:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .memory-card:nth-child(even) {
-            border-left-color: #feca57;
-        }
-
-        .memory-card:nth-child(3n) {
-            border-left-color: #48dbfb;
         }
 
         @keyframes slideIn {
@@ -274,101 +222,48 @@
             }
         }
 
-        .memory-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .memory-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #2c3e50;
-            margin: 0;
-        }
-
-        .memory-date {
-            font-size: 12px;
+        .conversation-date {
+            font-size: 14px;
             color: #7f8c8d;
-            background: rgba(255, 107, 107, 0.1);
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-weight: 500;
-        }
-
-        .memory-content {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .memory-photo {
-                width: 100%;
-                height: 120px;
-                align-self: center;
-            }
-            
-            .memory-text {
-                font-size: 13px;
-            }
-            
-            .memories-grid {
-                max-height: 300px;
-            
-            
-}
-
-        .memory-photo {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            object-fit: cover;
-            flex-shrink: 0;
-            border: 2px solid rgba(255, 107, 107, 0.2);
-        }
-
-        .memory-text {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #34495e;
-        }
-
-        .add-memory-btn {
-            background: linear-gradient(135deg, #48dbfb, #0abde3);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            box-shadow: 0 3px 10px rgba(72, 219, 251, 0.3);
+            margin-bottom: 10px;
         }
 
-        .add-memory-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(72, 219, 251, 0.4);
-        }
-
-        /* Scrollbar pour la liste des souvenirs */
-        .memories-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .memories-grid::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
+        .conversation-image {
+            width: 100%;
             border-radius: 10px;
+            object-fit: contain;
+            max-height: 300px;
         }
 
-        .memories-grid::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            border-radius: 10px;
+        .conversation-text {
+            font-size: 14px;
+            color: #34495e;
+            margin-bottom: 10px;
+            font-style: italic;
         }
 
-        /* Mobile optimizations */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .no-conversations {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .counter-text {
+            font-size: 14px;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
         @media (max-width: 480px) {
             .navbar {
                 padding: 8px 15px;
@@ -403,92 +298,6 @@
             .main-message {
                 font-size: 20px;
             }
-            
-            .photo-container {
-                width: 100px;
-                height: 100px;
-            }
-        }
-
-        .messages-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 20px;
-            font-size: 14px;
-            line-height: 1.5;
-            color: white;
-            position: relative;
-            animation: slideIn 0.3s ease-out;
-            word-wrap: break-word;
-        }
-
-        .message-bubble.left {
-            background: #48dbfb;
-            align-self: flex-start;
-        }
-
-        .message-bubble.right {
-            background: #ff6b6b;
-            align-self: flex-end;
-        }
-
-        .conversations-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-        .conversations-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .conversations-container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        .conversations-container::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-color, #ff6b6b);
-            border-radius: 10px;
-        }
-
-        .conversation-block {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.5s ease-out;
-            text-align: center;
-            border-left: 4px solid #ff6b6b;
-            transition: all 0.3s ease;
-        }
-
-        .conversation-date {
-            font-size: 14px;
-            color: #7f8c8d;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .conversation-image {
-            width: 100%;
-            border-radius: 10px;
-            object-fit: contain;
-        }
-        .conversation-text {
-            font-size: 14px;
-            color: #34495e;
-            margin-bottom: 10px;
-            font-style: italic;
         }
     </style>
 </head>
@@ -497,166 +306,233 @@
     <nav class="navbar">
         <div class="navbar-brand">App pour Oli ❤️</div>
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="index.html" class="nav-link">Accueil</a>
-            </li>
-            <li class="nav-item">
-                <a href="souvenirs.html" class="nav-link">Souvenirs</a>
-            </li>
-            <li class="nav-item">
-                <a href="messages.html" class="nav-link active">Messages</a>
-            </li>
+            <li><a href="index.html" class="nav-link">Accueil</a></li>
+            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+            <li><a href="messages.html" class="nav-link active">Messages</a></li>
+            <li><a href="admin.html" class="nav-link">Admin</a></li>
         </ul>
     </nav>
 
-    <div class="container" id="mainContainer">
+    <div class="container">
         <div class="header">
             <div class="traffic-lights">
                 <div class="traffic-light red"></div>
                 <div class="traffic-light yellow"></div>
                 <div class="traffic-light green"></div>
-            </div><br>
-            <div class="app-title">Petite partie de nos messages 🙃</div>
+            </div>
+            <div class="app-title">Nos petites conversations 💬</div>
         </div>
         
         <div class="content">
-            <h2 class="main-message">Nos petites Conversations 💬</h2>
-            <div class="conversations-container">
-                <div class="conversation-block">
-                    <div class="conversation-date">07 avril 2025</div>
-                    <div class="conversation-text">SMS le lendemain du grand weekend, c'était dur de réaliser</div>
-                    <img src="messages/lundi07:04.png" alt="lundi0704" class="conversation-image">
-                </div>
-                <div class="conversation-block">
-                    <div class="conversation-date">06 avril 2025</div>
-                    <div class="conversation-text">2ème date le lendemain avec humour mdrrr</div>
-                    <img src="messages/debutSMS.png" alt="debutSMS" class="conversation-image">
-                </div>
-                <div class="conversation-block">
-                    <div class="conversation-date">05 avril 2025</div>
-                    <div class="conversation-text">Petite organisation juste avant de se voir pour la première fois</div>
-                    <img src="messages/orga1erJour.png" alt="1erjour" class="conversation-image">
-                </div>
-                <div class="conversation-block">
-                    <div class="conversation-date">02 avril 2025</div>
-                    <div class="conversation-text">Besoin de respirer et au final regarde : </div>
-                    <p id="jour-compteur" class="conversation-text"></p>
-                    <img src="messages/respire2avril.png" alt="respire" class="conversation-image">
-                </div>
-                <div class="conversation-block">
-                    <div class="conversation-date">02 avril 2025</div>
-                    <div class="conversation-text">La folle au signe 🤣<br> On peut dire maintenant que c'est bon?</div>
-                    <img src="messages/2scorpions.png" alt="2scorpions" class="conversation-image">
-                </div>
-                <div class="conversation-block">
-                    <div class="conversation-date">02 avril 2025</div>
-                    <div class="conversation-text">Premier message sur insta 😏<br> Je suis tombé amoureux mais chut</div>
-                    <img src="messages/debutinsta.png" alt="debutinsta" class="conversation-image">
+            <h2 class="main-message">Nos Conversations 💬</h2>
+            <div id="conversationsContainer" class="conversations-container">
+                <div class="loading">
+                    Chargement des conversations... 💕
                 </div>
             </div>
+            
+            <!-- Compteur de jours toujours présent -->
+            <div class="counter-text" id="dayCounter"></div>
         </div>
     </div>
 
-    <script>
-      // Date de début de relation
-      const startDate = new Date("2025-04-14");
-      const today = new Date();
-      const diffTime = today - startDate;
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-      const compteur = document.getElementById("jour-compteur");
-      if (compteur) {
-          compteur.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu’on est ensemble ❤️`;
-      }
-    </script>
-    <script>
-      const container = document.querySelector('.conversations-container');
-      const blocks = document.querySelectorAll('.conversation-block');
+        // Configuration Firebase (remplace par tes vraies clés)
+        const firebaseConfig = {
+            apiKey: "ton-api-key",
+            authDomain: "app-pour-oli.firebaseapp.com",
+            projectId: "app-pour-oli",
+            storageBucket: "app-pour-oli.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "ton-app-id"
+        };
 
-      // Liste de couleurs modernes style Apple
-        const colors = [
-        '#FF6B6B', // rouge corail
-        '#FF8E53', // orange saumon
-        '#FF9F43', // orange mangue
-        '#FFA726', // orange ambre
-        '#FFD93D', // jaune citron
-        '#6BCF7F', // vert pomme
-        '#4ECDC4', // turquoise menthe
-        '#45B7D1', // bleu ciel
-        '#5DADE2', // bleu clair
-        '#A29BFE', // violet pastel
-        '#B983FF', // violet lilas
-        '#E84393', // rose fuchsia
-        '#FD79A8', // rose vif
-        '#FF7675', // rouge doux
-        '#74B9FF', // bleu moderne
-        '#00CEC9', // cyan
-        '#55EFC4', // vert menthe
-        '#FDCB6E', // jaune miel
-        '#E17055', // terracotta
-        '#6C5CE7', // violet indigo
-        '#A8E6CF', // vert pastel
-        '#FFB8B8', // rose poudré
-        '#C7ECEE', // bleu glacier
-        '#FFEAA7', // jaune vanille
-        '#DDA0DD', // prune claire
-        '#98D8C8', // vert d'eau
-        '#F7DC6F', // or clair
-        '#BB8FCE', // lavande
-        '#85C1E9', // bleu alice
-        '#F8C471', // pêche
-        '#82E0AA', // vert jade
-        '#F1948A', // saumon
-        '#AED6F1', // bleu poudre
-        '#D7BDE2', // violet tendre
-        '#A3E4D7', // menthe glacée
-        '#FAD7A0', // beige doré
-        '#FADBD8', // rose très clair
-        '#D5DBDB', // gris perle
-        '#AEB6BF', // gris moderne
-        '#85929E'  // gris ardoise
-        ];
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-      // Attribution aléatoire de couleurs à chaque bloc
-      blocks.forEach(block => {
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        block.style.borderLeftColor = randomColor;
-      });
+        // Update day counter
+        function updateDayCounter() {
+            const startDate = new Date("2025-04-14");
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      function getVisibleBlock() {
-        let maxVisible = 0;
-        let current = null;
+            const counter = document.getElementById("dayCounter");
+            if (counter) {
+                counter.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️`;
+            }
+        }
 
-        blocks.forEach(block => {
-          const rect = block.getBoundingClientRect();
-          const containerRect = container.getBoundingClientRect();
-          const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
-          if (visibleHeight > maxVisible) {
-            maxVisible = visibleHeight;
-            current = block;
-          }
+        // Load conversations from Firebase
+        async function loadConversations() {
+            const container = document.getElementById('conversationsContainer');
+            
+            try {
+                const q = query(collection(db, 'conversations'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                // Combine Firebase conversations with existing static ones
+                const staticConversations = [
+                    {
+                        date: "2025-04-07",
+                        description: "SMS le lendemain du grand weekend, c'était dur de réaliser",
+                        photoURL: "messages/lundi07:04.png"
+                    },
+                    {
+                        date: "2025-04-06",
+                        description: "2ème date le lendemain avec humour mdrrr",
+                        photoURL: "messages/debutSMS.png"
+                    },
+                    {
+                        date: "2025-04-05",
+                        description: "Petite organisation juste avant de se voir pour la première fois",
+                        photoURL: "messages/orga1erJour.png"
+                    },
+                    {
+                        date: "2025-04-02",
+                        description: "Besoin de respirer et au final regarde :",
+                        photoURL: "messages/respire2avril.png",
+                        special: true
+                    },
+                    {
+                        date: "2025-04-02",
+                        description: "La folle au signe 🤣<br> On peut dire maintenant que c'est bon?",
+                        photoURL: "messages/2scorpions.png"
+                    },
+                    {
+                        date: "2025-04-02",
+                        description: "Premier message sur insta 😏<br> Je suis tombé amoureux mais chut",
+                        photoURL: "messages/debutinsta.png"
+                    }
+                ];
+                
+                // Combine and sort all conversations
+                const allConversations = [...staticConversations];
+                
+                querySnapshot.forEach((doc) => {
+                    const conversation = doc.data();
+                    allConversations.push(conversation);
+                });
+                
+                // Sort by date (newest first)
+                allConversations.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (allConversations.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-conversations">
+                            Aucune conversation pour le moment 🥺<br>
+                            <small>Ajoutez-en via la page Admin !</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                const colors = [
+                    '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
+                    '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
+                    '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
+                    '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
+                ];
+                
+                allConversations.forEach((conversation, index) => {
+                    const randomColor = colors[index % colors.length];
+                    
+                    // Format date
+                    const date = new Date(conversation.date);
+                    const formattedDate = date.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    
+                    const conversationBlock = document.createElement('div');
+                    conversationBlock.className = 'conversation-block';
+                    conversationBlock.style.borderLeftColor = randomColor;
+                    
+                    // Special handling for the counter conversation
+                    let specialContent = '';
+                    if (conversation.special) {
+                        const startDate = new Date("2025-04-14");
+                        const today = new Date();
+                        const diffTime = today - startDate;
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        specialContent = `<div class="counter-text">Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️</div>`;
+                    }
+                    
+                    conversationBlock.innerHTML = `
+                        <div class="conversation-date">${formattedDate}</div>
+                        <div class="conversation-text">${conversation.description}</div>
+                        ${specialContent}
+                        <img src="${conversation.photoURL}" alt="Conversation ${formattedDate}" class="conversation-image">
+                    `;
+                    
+                    container.appendChild(conversationBlock);
+                });
+                
+                updateScrollbarColor();
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des conversations:", error);
+                container.innerHTML = `
+                    <div class="no-conversations">
+                        Erreur lors du chargement des conversations 😞<br>
+                        <small>Vérifiez votre connexion internet</small>
+                    </div>
+                `;
+            }
+        }
+
+        function updateScrollbarColor() {
+            const container = document.getElementById('conversationsContainer');
+            const blocks = container.querySelectorAll('.conversation-block');
+            
+            if (blocks.length === 0) return;
+            
+            function getVisibleBlock() {
+                let maxVisible = 0;
+                let current = null;
+
+                blocks.forEach(block => {
+                    const rect = block.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+                    if (visibleHeight > maxVisible) {
+                        maxVisible = visibleHeight;
+                        current = block;
+                    }
+                });
+
+                return current;
+            }
+
+            function updateColor() {
+                const visible = getVisibleBlock();
+                if (visible) {
+                    const color = getComputedStyle(visible).borderLeftColor;
+                    container.style.setProperty('--scrollbar-color', color);
+                }
+            }
+
+            container.addEventListener('scroll', updateColor);
+            
+            // Set initial color
+            if (blocks.length > 0) {
+                const color = getComputedStyle(blocks[0]).borderLeftColor;
+                container.style.setProperty('--scrollbar-color', color);
+            }
+        }
+
+        // Load content when page loads
+        window.addEventListener('load', () => {
+            updateDayCounter();
+            loadConversations();
         });
-
-        return current;
-      }
-
-      function updateScrollbarColor() {
-        const visible = getVisibleBlock();
-        if (visible) {
-          const color = getComputedStyle(visible).borderLeftColor;
-          container.style.setProperty('--scrollbar-color', color);
-        }
-      }
-
-      container.addEventListener('scroll', updateScrollbarColor);
-      window.addEventListener('load', () => {
-        // Met la couleur de la scrollbar sur la couleur du premier bloc
-        if (blocks.length > 0) {
-          const color = getComputedStyle(blocks[0]).borderLeftColor;
-          container.style.setProperty('--scrollbar-color', color);
-        }
-        updateScrollbarColor();
-      });
     </script>
 </body>
 </html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - App pour Oli ❤️</title>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://firebasestorage.googleapis.com;
+        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+        font-src 'self' data:;
+        object-src 'none';
+        frame-ancestors 'none';
+    ">
+
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Progressive Web App -->
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="App pour Oli">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+
+    <!-- Preconnect pour améliorer les performances -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+            transform: translateY(-1px);
+        }
+
+        .main-container {
+            margin-top: 80px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 107, 107, 0.2);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 16px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px dashed #ff6b6b;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #ff6b6b;
+            font-weight: 500;
+        }
+
+        .file-input-label:hover {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-message, .error-message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .section-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-brand">Admin - App pour Oli ❤️</div>
+        <ul class="navbar-nav">
+            <li><a href="index.html" class="nav-link">Accueil</a></li>
+            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+            <li><a href="messages.html" class="nav-link">Messages</a></li>
+            <li><a href="#" class="nav-link" onclick="logout()">Déconnexion</a></li>
+        </ul>
+    </nav>
+
+    <!-- Login Form (hidden after login) -->
+    <div id="loginContainer" class="login-container">
+        <div class="section-header">
+            <h2>Connexion Admin 🔐</h2>
+        </div>
+        <div class="section-content">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="submit-btn">Se connecter</button>
+            </form>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Admin Interface (hidden until login) -->
+    <div id="adminInterface" class="main-container" style="display: none;">
+        <!-- Add Memory Section -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Ajouter un Souvenir 💫</h2>
+            </div>
+            <div class="section-content">
+                <form id="memoryForm">
+                    <div class="form-group">
+                        <label class="form-label">Titre du souvenir</label>
+                        <input type="text" id="memoryTitle" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="memoryDate" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="memoryDescription" class="form-textarea" placeholder="Raconte ce beau souvenir..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Photo (optionnelle)</label>
+                        <div class="file-input-container">
+                            <input type="file" id="memoryPhoto" class="file-input" accept="image/*">
+                            <label for="memoryPhoto" class="file-input-label">
+                                📸 Choisir une photo
+                            </label>
+                        </div>
+                        <div id="memoryPreview" class="preview-container"></div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="memorySubmit">
+                        Ajouter le souvenir ✨
+                    </button>
+                </form>
+                <div id="memoryMessage"></div>
+            </div>
+        </div>
+
+        <!-- Add Message Section -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Ajouter une Conversation 💬</h2>
+            </div>
+            <div class="section-content">
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label class="form-label">Date de la conversation</label>
+                        <input type="date" id="messageDate" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="messageDescription" class="form-textarea" placeholder="Contexte de cette conversation..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Screenshot de la conversation</label>
+                        <div class="file-input-container">
+                            <input type="file" id="messagePhoto" class="file-input" accept="image/*" required>
+                            <label for="messagePhoto" class="file-input-label">
+                                📱 Choisir le screenshot
+                            </label>
+                        </div>
+                        <div id="messagePreview" class="preview-container"></div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="messageSubmit">
+                        Ajouter la conversation 💕
+                    </button>
+                </form>
+                <div id="messageMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Configuration Firebase (remplace par tes vraies clés)
+        const firebaseConfig = {
+            apiKey: "ton-api-key",
+            authDomain: "app-pour-oli.firebaseapp.com",
+            projectId: "app-pour-oli",
+            storageBucket: "app-pour-oli.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "ton-app-id"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        const auth = getAuth(app);
+
+        // Elements
+        const loginContainer = document.getElementById('loginContainer');
+        const adminInterface = document.getElementById('adminInterface');
+        const loginForm = document.getElementById('loginForm');
+        const memoryForm = document.getElementById('memoryForm');
+        const messageForm = document.getElementById('messageForm');
+
+        // Check auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginContainer.style.display = 'none';
+                adminInterface.style.display = 'grid';
+            } else {
+                loginContainer.style.display = 'block';
+                adminInterface.style.display = 'none';
+            }
+        });
+
+        // Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                errorDiv.style.display = 'none';
+            } catch (error) {
+                errorDiv.textContent = 'Erreur de connexion: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Logout
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('Erreur de déconnexion:', error);
+            }
+        };
+
+        // Preview images
+        document.getElementById('memoryPhoto').addEventListener('change', (e) => {
+            previewImage(e.target, 'memoryPreview');
+        });
+
+        document.getElementById('messagePhoto').addEventListener('change', (e) => {
+            previewImage(e.target, 'messagePreview');
+        });
+
+        function previewImage(input, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    container.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Upload image to Firebase Storage
+        async function uploadImage(file, folder) {
+            const timestamp = Date.now();
+            const fileName = `${folder}/${timestamp}_${file.name}`;
+            const storageRef = ref(storage, fileName);
+            
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            return downloadURL;
+        }
+
+        // Add memory
+        memoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('memorySubmit');
+            const messageDiv = document.getElementById('memoryMessage');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Ajout en cours...';
+            
+            try {
+                const title = document.getElementById('memoryTitle').value;
+                const date = document.getElementById('memoryDate').value;
+                const description = document.getElementById('memoryDescription').value;
+                const photoFile = document.getElementById('memoryPhoto').files[0];
+                
+                let photoURL = null;
+                if (photoFile) {
+                    photoURL = await uploadImage(photoFile, 'memories');
+                }
+                
+                await addDoc(collection(db, 'memories'), {
+                    title,
+                    date,
+                    description,
+                    photoURL,
+                    createdAt: serverTimestamp(),
+                    createdBy: auth.currentUser.email
+                });
+                
+                messageDiv.innerHTML = '<div class="success-message">Souvenir ajouté avec succès ! ✨</div>';
+                memoryForm.reset();
+                document.getElementById('memoryPreview').innerHTML = '';
+                
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error-message">Erreur: ${error.message}</div>`;
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ajouter le souvenir ✨';
+        });
+
+        // Add message
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('messageSubmit');
+            const messageDiv = document.getElementById('messageMessage');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Ajout en cours...';
+            
+            try {
+                const date = document.getElementById('messageDate').value;
+                const description = document.getElementById('messageDescription').value;
+                const photoFile = document.getElementById('messagePhoto').files[0];
+                
+                if (!photoFile) {
+                    throw new Error('Une image est requise pour les conversations');
+                }
+                
+                const photoURL = await uploadImage(photoFile, 'messages');
+                
+                await addDoc(collection(db, 'conversations'), {
+                    date,
+                    description,
+                    photoURL,
+                    createdAt: serverTimestamp(),
+                    createdBy: auth.currentUser.email
+                });
+                
+                messageDiv.innerHTML = '<div class="success-message">Conversation ajoutée avec succès ! 💕</div>';
+                messageForm.reset();
+                document.getElementById('messagePreview').innerHTML = '';
+                
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error-message">Erreur: ${error.message}</div>`;
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ajouter la conversation 💕';
+        });
+    </script>
+</body>
+</html>

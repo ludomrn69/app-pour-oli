@@ -1,10 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu me manques ❤️</title>
+    <title>Souvenirs - Tu me manques ❤️</title>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://firebasestorage.googleapis.com;
+        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+        font-src 'self' data:;
+        object-src 'none';
+        frame-ancestors 'none';
+    ">
+
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Progressive Web App -->
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="App pour Oli">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+
+    <!-- Preconnect pour améliorer les performances -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <style>
         * {
             margin: 0;
@@ -21,9 +49,9 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            padding-top: 70px;
         }
 
-        /* Navigation Bar */
         .navbar {
             position: fixed;
             top: 0;
@@ -55,10 +83,6 @@
             list-style: none;
         }
 
-        .nav-item {
-            position: relative;
-        }
-
         .nav-link {
             text-decoration: none;
             color: #2c3e50;
@@ -79,11 +103,6 @@
             background: linear-gradient(135deg, #ff6b6b, #feca57);
             color: white;
             box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
-        }
-
-        /* Ajuster le body pour la navbar */
-        body {
-            padding-top: 70px;
         }
 
         .container {
@@ -142,29 +161,6 @@
             text-align: center;
         }
 
-        .photo-container {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 25px;
-            overflow: hidden;
-            border: 4px solid rgba(255, 107, 107, 0.2);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .photo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .main-message {
             font-size: 24px;
             font-weight: 700;
@@ -176,63 +172,6 @@
             background-clip: text;
         }
 
-        .date-time {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .love-message {
-            font-size: 16px;
-            color: #34495e;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255, 107, 107, 0.05);
-            border-radius: 15px;
-            border-left: 4px solid #ff6b6b;
-        }
-
-        .hearts {
-            font-size: 20px;
-            margin: 20px 0;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .button {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
-        }
-
-        .footer {
-            padding: 20px;
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 12px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(0, 0, 0, 0.01);
-        }
-
-        /* Memory cards styles */
         .memories-grid {
             display: grid;
             gap: 20px;
@@ -291,62 +230,39 @@
         }
 
         .memory-content {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .memory-photo {
-                width: 100%;
-                height: 120px;
-                align-self: center;
-            }
-            
-            .memory-text {
-                font-size: 13px;
-            }
-            
-            .memories-grid {
-                max-height: 300px;
-            
-            
-}
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
         .memory-photo {
-            width: 60px;
-            height: 60px;
+            width: 100%;
+            height: 120px;
             border-radius: 10px;
             object-fit: cover;
-            flex-shrink: 0;
             border: 2px solid rgba(255, 107, 107, 0.2);
         }
 
         .memory-text {
-            flex: 1;
             font-size: 14px;
             line-height: 1.5;
             color: #34495e;
         }
 
-        .add-memory-btn {
-            background: linear-gradient(135deg, #48dbfb, #0abde3);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            box-shadow: 0 3px 10px rgba(72, 219, 251, 0.3);
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
         }
 
-        .add-memory-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(72, 219, 251, 0.4);
+        .no-memories {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
         }
 
-        /* Scrollbar pour la liste des souvenirs */
         .memories-grid::-webkit-scrollbar {
             width: 6px;
         }
@@ -361,7 +277,6 @@
             border-radius: 10px;
         }
 
-        /* Mobile optimizations */
         @media (max-width: 480px) {
             .navbar {
                 padding: 8px 15px;
@@ -396,11 +311,6 @@
             .main-message {
                 font-size: 20px;
             }
-            
-            .photo-container {
-                width: 100px;
-                height: 100px;
-            }
         }
     </style>
 </head>
@@ -409,118 +319,163 @@
     <nav class="navbar">
         <div class="navbar-brand">App pour Oli ❤️</div>
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="index.html" class="nav-link">Accueil</a>
-            </li>
-            <li class="nav-item">
-                <a href="souvenirs.html" class="nav-link active">Souvenirs</a>
-            </li>
-            <li class="nav-item">
-                <a href="messages.html" class="nav-link">Messages</a>
-            </li>
+            <li><a href="index.html" class="nav-link">Accueil</a></li>
+            <li><a href="souvenirs.html" class="nav-link active">Souvenirs</a></li>
+            <li><a href="messages.html" class="nav-link">Messages</a></li>
+            <li><a href="admin.html" class="nav-link">Admin</a></li>
         </ul>
     </nav>
 
-    <div class="container" id="mainContainer">
+    <div class="container">
         <div class="header">
             <div class="traffic-lights">
                 <div class="traffic-light red"></div>
                 <div class="traffic-light yellow"></div>
                 <div class="traffic-light green"></div>
             </div>
-            <div class="app-title">Tu me manques déjà beaucoupppp</div>
+            <div class="app-title">Nos plus beaux souvenirs 💫</div>
         </div>
         
         <div class="content">
-            <div class="content">
-    <h2 class="main-message">Nos Souvenirs 💫</h2>
-    <div class="memories-grid">
-        <div class="memory-card">
-            <div class="memory-header">
-                <h3 class="memory-title">Premier rendez-vous</h3>
-                <div class="memory-date">12 février 2023</div>
-            </div>
-            <div class="memory-content">
-                <img src="memory1.jpg" alt="Souvenir 1" class="memory-photo">
-                <p class="memory-text">Un moment inoubliable au bord du lac avec toi 💕</p>
-            </div>
-        </div>
-        <div class="memory-card">
-            <div class="memory-header">
-                <h3 class="memory-title">Anniversaire surprise</h3>
-                <div class="memory-date">5 mai 2023</div>
-            </div>
-            <div class="memory-content">
-                <img src="memory2.jpg" alt="Souvenir 2" class="memory-photo">
-                <p class="memory-text">Tu étais si rayonnante, je n'oublierai jamais ton sourire 🥰</p>
-            </div>
-        </div>
-        <div class="memory-card">
-            <div class="memory-header">
-                <h3 class="memory-title">Voyage à la mer</h3>
-                <div class="memory-date">21 août 2023</div>
-            </div>
-            <div class="memory-content">
-                <img src="memory3.jpg" alt="Souvenir 3" class="memory-photo">
-                <p class="memory-text">Marcher pieds nus dans le sable avec toi, c'était magique ✨</p>
+            <h2 class="main-message">Nos Souvenirs 💫</h2>
+            <div id="memoriesContainer" class="memories-grid">
+                <div class="loading">
+                    Chargement des souvenirs... ✨
+                </div>
             </div>
         </div>
     </div>
-</div>
-    </div>
 
-</div>
-    <script>
-  const container = document.querySelector('.memories-grid');
-  const cards = document.querySelectorAll('.memory-card');
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-  const colors = [
-    '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
-    '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
-    '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
-    '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0',
-    '#FADBD8','#D5DBDB','#AEB6BF','#85929E'
-  ];
+        // Configuration Firebase (remplace par tes vraies clés)
+        const firebaseConfig = {
+            apiKey: "ton-api-key",
+            authDomain: "app-pour-oli.firebaseapp.com",
+            projectId: "app-pour-oli",
+            storageBucket: "app-pour-oli.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "ton-app-id"
+        };
 
-  cards.forEach(card => {
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    card.style.borderLeftColor = randomColor;
-  });
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-  function getVisibleCard() {
-    let maxVisible = 0;
-    let current = null;
+        // Load memories from Firebase
+        async function loadMemories() {
+            const container = document.getElementById('memoriesContainer');
+            
+            try {
+                const q = query(collection(db, 'memories'), orderBy('date', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = `
+                        <div class="no-memories">
+                            Aucun souvenir pour le moment 🥺<br>
+                            <small>Ajoutez-en via la page Admin !</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                const colors = [
+                    '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
+                    '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
+                    '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
+                    '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
+                ];
+                
+                querySnapshot.forEach((doc, index) => {
+                    const memory = doc.data();
+                    const randomColor = colors[index % colors.length];
+                    
+                    // Format date
+                    const date = new Date(memory.date);
+                    const formattedDate = date.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                    
+                    const memoryCard = document.createElement('div');
+                    memoryCard.className = 'memory-card';
+                    memoryCard.style.borderLeftColor = randomColor;
+                    
+                    memoryCard.innerHTML = `
+                        <div class="memory-header">
+                            <h3 class="memory-title">${memory.title}</h3>
+                            <div class="memory-date">${formattedDate}</div>
+                        </div>
+                        <div class="memory-content">
+                            ${memory.photoURL ? `<img src="${memory.photoURL}" alt="${memory.title}" class="memory-photo">` : ''}
+                            <p class="memory-text">${memory.description}</p>
+                        </div>
+                    `;
+                    
+                    container.appendChild(memoryCard);
+                });
+                
+                updateScrollbarColor();
+                
+            } catch (error) {
+                console.error("Erreur lors du chargement des souvenirs:", error);
+                container.innerHTML = `
+                    <div class="no-memories">
+                        Erreur lors du chargement des souvenirs 😞<br>
+                        <small>Vérifiez votre connexion internet</small>
+                    </div>
+                `;
+            }
+        }
 
-    cards.forEach(card => {
-      const rect = card.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
-      if (visibleHeight > maxVisible) {
-        maxVisible = visibleHeight;
-        current = card;
-      }
-    });
+        function updateScrollbarColor() {
+            const container = document.getElementById('memoriesContainer');
+            const cards = container.querySelectorAll('.memory-card');
+            
+            if (cards.length === 0) return;
+            
+            function getVisibleCard() {
+                let maxVisible = 0;
+                let current = null;
 
-    return current;
-  }
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+                    if (visibleHeight > maxVisible) {
+                        maxVisible = visibleHeight;
+                        current = card;
+                    }
+                });
 
-  function updateScrollbarColor() {
-    const visible = getVisibleCard();
-    if (visible) {
-      const color = getComputedStyle(visible).borderLeftColor;
-      container.style.setProperty('--scrollbar-color', color);
-    }
-  }
+                return current;
+            }
 
-  container.addEventListener('scroll', updateScrollbarColor);
-  window.addEventListener('load', () => {
-    if (cards.length > 0) {
-      const color = getComputedStyle(cards[0]).borderLeftColor;
-      container.style.setProperty('--scrollbar-color', color);
-    }
-    updateScrollbarColor();
-  });
+            function updateColor() {
+                const visible = getVisibleCard();
+                if (visible) {
+                    const color = getComputedStyle(visible).borderLeftColor;
+                    container.style.setProperty('--scrollbar-color', color);
+                }
+            }
+
+            container.addEventListener('scroll', updateColor);
+            
+            // Set initial color
+            if (cards.length > 0) {
+                const color = getComputedStyle(cards[0]).borderLeftColor;
+                container.style.setProperty('--scrollbar-color', color);
+            }
+        }
+
+        // Load memories when page loads
+        window.addEventListener('load', loadMemories);
     </script>
 </body>
 </html>
-

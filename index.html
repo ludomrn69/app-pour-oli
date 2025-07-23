@@ -5,7 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tu me manques ❤️</title>
-    <style>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://firebasestorage.googleapis.com;
+        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
+        font-src 'self' data:;
+        object-src 'none';
+        frame-ancestors 'none';
+    ">
+
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- Progressive Web App -->
+    <meta name="theme-color" content="#ff6b6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="App pour Oli">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+
+    <!-- Preconnect pour améliorer les performances -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+        <style>
         * {
             margin: 0;
             padding: 0;
@@ -417,15 +446,10 @@
     <nav class="navbar">
         <div class="navbar-brand">App pour Oli ❤️</div>
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="index.html" class="nav-link active">Accueil</a>
-            </li>
-            <li class="nav-item">
-                <a href="souvenirs.html" class="nav-link">Souvenirs</a>
-            </li>
-            <li class="nav-item">
-                <a href="messages.html" class="nav-link">Messages</a>
-            </li>
+            <li><a href="index.html" class="nav-link active">Accueil</a></li>
+            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+            <li><a href="messages.html" class="nav-link">Messages</a></li>
+            <li><a href="admin.html" class="nav-link">Admin</a></li>
         </ul>
     </nav>
 

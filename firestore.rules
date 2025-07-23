@@ -1,0 +1,37 @@
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Règles pour la collection 'memories'
+    match /memories/{memoryId} {
+      // Lecture autorisée pour tous
+      allow read: if true;
+      
+      // Écriture autorisée seulement pour les utilisateurs authentifiés
+      // Tu peux ajuster avec des emails spécifiques si nécessaire
+      allow create, update, delete: if request.auth != null;
+      
+      // Optionnel: Restreindre à des emails spécifiques
+      // allow create, update, delete: if request.auth != null && 
+      //   request.auth.token.email in ['ludovicmarion70@gmail.com', 'email-oli@example.com'];
+    }
+    
+    // Règles pour la collection 'conversations'
+    match /conversations/{conversationId} {
+      // Lecture autorisée pour tous
+      allow read: if true;
+      
+      // Écriture autorisée seulement pour les utilisateurs authentifiés
+      allow create, update, delete: if request.auth != null;
+      
+      // Optionnel: Restreindre à des emails spécifiques
+      // allow create, update, delete: if request.auth != null && 
+      //   request.auth.token.email in ['ludovicmarion70@gmail.com', 'email-oli@example.com'];
+    }
+    
+    // Règle par défaut: refuser tout le reste
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
