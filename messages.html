@@ -449,6 +449,17 @@
             overflow-y: auto;
             padding-right: 10px;
         }
+        .conversations-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .conversations-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .conversations-container::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-color, #ff6b6b);
+            border-radius: 10px;
+        }
 
         .conversation-block {
             background: rgba(255, 255, 255, 0.9);
@@ -457,6 +468,8 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             animation: slideIn 0.5s ease-out;
             text-align: center;
+            border-left: 4px solid #ff6b6b;
+            transition: all 0.3s ease;
         }
 
         .conversation-date {
@@ -488,10 +501,10 @@
                 <a href="index.html" class="nav-link">Accueil</a>
             </li>
             <li class="nav-item">
-                <a href="souvenirs.html" class="nav-link active">Souvenirs</a>
+                <a href="souvenirs.html" class="nav-link">Souvenirs</a>
             </li>
             <li class="nav-item">
-                <a href="messages.html" class="nav-link">Messages</a>
+                <a href="messages.html" class="nav-link active">Messages</a>
             </li>
         </ul>
     </nav>
@@ -502,29 +515,148 @@
                 <div class="traffic-light red"></div>
                 <div class="traffic-light yellow"></div>
                 <div class="traffic-light green"></div>
-            </div>
-            <div class="app-title">Tu me manques déjà beaucoupppp</div>
+            </div><br>
+            <div class="app-title">Petite partie de nos messages 🙃</div>
         </div>
         
         <div class="content">
-            <h2 class="main-message">Nos Conversations 💬</h2>
+            <h2 class="main-message">Nos petites Conversations 💬</h2>
             <div class="conversations-container">
                 <div class="conversation-block">
-                    <div class="conversation-date">12 juillet 2024</div>
-                    <div class="conversation-text">Une journée où tu m’as fait sourire sans le savoir 😘</div>
-                    <img src="conversation1.jpg" alt="Conversation 1" class="conversation-image">
+                    <div class="conversation-date">07 avril 2025</div>
+                    <div class="conversation-text">SMS le lendemain du grand weekend, c'était dur de réaliser</div>
+                    <img src="messages/lundi07:04.png" alt="lundi0704" class="conversation-image">
                 </div>
                 <div class="conversation-block">
-                    <div class="conversation-date">28 juin 2024</div>
-                    <div class="conversation-text">Ce message-là m’a réchauffé le cœur ❤️</div>
-                    <img src="conversation2.jpg" alt="Conversation 2" class="conversation-image">
+                    <div class="conversation-date">06 avril 2025</div>
+                    <div class="conversation-text">2ème date le lendemain avec humour mdrrr</div>
+                    <img src="messages/debutSMS.png" alt="debutSMS" class="conversation-image">
+                </div>
+                <div class="conversation-block">
+                    <div class="conversation-date">05 avril 2025</div>
+                    <div class="conversation-text">Petite organisation juste avant de se voir pour la première fois</div>
+                    <img src="messages/orga1erJour.png" alt="1erjour" class="conversation-image">
+                </div>
+                <div class="conversation-block">
+                    <div class="conversation-date">02 avril 2025</div>
+                    <div class="conversation-text">Besoin de respirer et au final regarde : </div>
+                    <p id="jour-compteur" class="conversation-text"></p>
+                    <img src="messages/respire2avril.png" alt="respire" class="conversation-image">
+                </div>
+                <div class="conversation-block">
+                    <div class="conversation-date">02 avril 2025</div>
+                    <div class="conversation-text">La folle au signe 🤣<br> On peut dire maintenant que c'est bon?</div>
+                    <img src="messages/2scorpions.png" alt="2scorpions" class="conversation-image">
+                </div>
+                <div class="conversation-block">
+                    <div class="conversation-date">02 avril 2025</div>
+                    <div class="conversation-text">Premier message sur insta 😏<br> Je suis tombé amoureux mais chut</div>
+                    <img src="messages/debutinsta.png" alt="debutinsta" class="conversation-image">
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        
+      // Date de début de relation
+      const startDate = new Date("2025-04-14");
+      const today = new Date();
+      const diffTime = today - startDate;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      const compteur = document.getElementById("jour-compteur");
+      if (compteur) {
+          compteur.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu’on est ensemble ❤️`;
+      }
+    </script>
+    <script>
+      const container = document.querySelector('.conversations-container');
+      const blocks = document.querySelectorAll('.conversation-block');
+
+      // Liste de couleurs modernes style Apple
+        const colors = [
+        '#FF6B6B', // rouge corail
+        '#FF8E53', // orange saumon
+        '#FF9F43', // orange mangue
+        '#FFA726', // orange ambre
+        '#FFD93D', // jaune citron
+        '#6BCF7F', // vert pomme
+        '#4ECDC4', // turquoise menthe
+        '#45B7D1', // bleu ciel
+        '#5DADE2', // bleu clair
+        '#A29BFE', // violet pastel
+        '#B983FF', // violet lilas
+        '#E84393', // rose fuchsia
+        '#FD79A8', // rose vif
+        '#FF7675', // rouge doux
+        '#74B9FF', // bleu moderne
+        '#00CEC9', // cyan
+        '#55EFC4', // vert menthe
+        '#FDCB6E', // jaune miel
+        '#E17055', // terracotta
+        '#6C5CE7', // violet indigo
+        '#A8E6CF', // vert pastel
+        '#FFB8B8', // rose poudré
+        '#C7ECEE', // bleu glacier
+        '#FFEAA7', // jaune vanille
+        '#DDA0DD', // prune claire
+        '#98D8C8', // vert d'eau
+        '#F7DC6F', // or clair
+        '#BB8FCE', // lavande
+        '#85C1E9', // bleu alice
+        '#F8C471', // pêche
+        '#82E0AA', // vert jade
+        '#F1948A', // saumon
+        '#AED6F1', // bleu poudre
+        '#D7BDE2', // violet tendre
+        '#A3E4D7', // menthe glacée
+        '#FAD7A0', // beige doré
+        '#FADBD8', // rose très clair
+        '#D5DBDB', // gris perle
+        '#AEB6BF', // gris moderne
+        '#85929E'  // gris ardoise
+        ];
+
+      // Attribution aléatoire de couleurs à chaque bloc
+      blocks.forEach(block => {
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        block.style.borderLeftColor = randomColor;
+      });
+
+      function getVisibleBlock() {
+        let maxVisible = 0;
+        let current = null;
+
+        blocks.forEach(block => {
+          const rect = block.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+          if (visibleHeight > maxVisible) {
+            maxVisible = visibleHeight;
+            current = block;
+          }
+        });
+
+        return current;
+      }
+
+      function updateScrollbarColor() {
+        const visible = getVisibleBlock();
+        if (visible) {
+          const color = getComputedStyle(visible).borderLeftColor;
+          container.style.setProperty('--scrollbar-color', color);
+        }
+      }
+
+      container.addEventListener('scroll', updateScrollbarColor);
+      window.addEventListener('load', () => {
+        // Met la couleur de la scrollbar sur la couleur du premier bloc
+        if (blocks.length > 0) {
+          const color = getComputedStyle(blocks[0]).borderLeftColor;
+          container.style.setProperty('--scrollbar-color', color);
+        }
+        updateScrollbarColor();
+      });
     </script>
 </body>
 </html>

@@ -256,14 +256,6 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
-        .memory-card:nth-child(even) {
-            border-left-color: #feca57;
-        }
-
-        .memory-card:nth-child(3n) {
-            border-left-color: #48dbfb;
-        }
-
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -365,7 +357,7 @@
         }
 
         .memories-grid::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            background: var(--scrollbar-color, #ff6b6b);
             border-radius: 10px;
         }
 
@@ -477,8 +469,57 @@
 </div>
     </div>
 
+</div>
     <script>
-        
+  const container = document.querySelector('.memories-grid');
+  const cards = document.querySelectorAll('.memory-card');
+
+  const colors = [
+    '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
+    '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
+    '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
+    '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0',
+    '#FADBD8','#D5DBDB','#AEB6BF','#85929E'
+  ];
+
+  cards.forEach(card => {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    card.style.borderLeftColor = randomColor;
+  });
+
+  function getVisibleCard() {
+    let maxVisible = 0;
+    let current = null;
+
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const visibleHeight = Math.max(0, Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top));
+      if (visibleHeight > maxVisible) {
+        maxVisible = visibleHeight;
+        current = card;
+      }
+    });
+
+    return current;
+  }
+
+  function updateScrollbarColor() {
+    const visible = getVisibleCard();
+    if (visible) {
+      const color = getComputedStyle(visible).borderLeftColor;
+      container.style.setProperty('--scrollbar-color', color);
+    }
+  }
+
+  container.addEventListener('scroll', updateScrollbarColor);
+  window.addEventListener('load', () => {
+    if (cards.length > 0) {
+      const color = getComputedStyle(cards[0]).borderLeftColor;
+      container.style.setProperty('--scrollbar-color', color);
+    }
+    updateScrollbarColor();
+  });
     </script>
 </body>
 </html>

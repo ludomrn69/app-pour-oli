@@ -71,13 +71,13 @@ jobs:
         to: ludovicmarion70@gmail.com
         from: "App Oli"
         html_body: |
-          <h2>Coucou,</h2>
-          <p>L'application Oli a bien été déployée 🎉</p>
-          <p>👉 <a href="https://ludomrn69.github.io/app-pour-oli">Voir l'app en ligne</a></p>
-          <p style="font-size:20px;">❤️</p>
+          <h2>Coucou ma vie,</h2>
+          <p>J'ai ajouté un petit truc 🙃</p>
+          <p>👉 <a href="https://ludomrn69.github.io/app-pour-oli">Le lien de la petite app</a></p>
+          <p style="font-size:20px;">Je t'aime tellement toi ! ❤️</p>
         text_body: |
-          Bonjour,
+          Coucou ma vie,
 
-          L'application Oli a bien été déployée 🎉
+          J'ai ajouté un petit truc 🙃
           Voir l'app en ligne : https://ludomrn69.github.io/app-pour-oli
-          ❤️
+          Je t'aime tellement toi ! ❤️
