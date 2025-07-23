@@ -481,6 +481,7 @@
             <div class="hearts">❤️❤️❤️❤️❤️❤️❤️</div>
             
             <button class="button" onclick="sendLove()">Envoyer un peu de love 💌</button>
+            <div id="dayCounter" class="day-counter" style="margin-top: 20px; font-size: 14px; color: #2c3e50; font-weight: 500;"></div>
         </div>
         
         <div class="footer">
@@ -567,6 +568,19 @@
         
         // You'll need to replace {{ PHOTO_BASE64_HERE }} with the actual base64 of your photo
         // For now, it will show a placeholder
+
+        updateDayCounter();
+
+        function updateDayCounter() {
+            const startDate = new Date("2025-04-14");
+            const today = new Date();
+            const diffTime = today - startDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const counter = document.getElementById("dayCounter");
+            if (counter) {
+                counter.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️`;
+            }
+        }
     </script>
 </body>
 </html>

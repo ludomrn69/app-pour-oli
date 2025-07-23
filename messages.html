@@ -231,9 +231,11 @@
 
         .conversation-image {
             width: 100%;
+            height: auto;
             border-radius: 10px;
-            object-fit: contain;
-            max-height: 300px;
+            object-fit: cover;
+            max-height: none;
+            display: block;
         }
 
         .conversation-text {
@@ -341,7 +343,7 @@
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-        import { getStorage, ref as storageRef, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -374,59 +376,55 @@
             }
         }
 
-        // Load conversations from Firebase Storage
+        // Load conversations from Firestore
         async function loadConversations() {
             const container = document.getElementById('conversationsContainer');
-            const storage = getStorage();
+            container.innerHTML = `<div class="loading">Chargement des messages... 💬</div>`;
 
-            try {
-                const folderRef = storageRef(storage, 'messages');
-                const res = await listAll(folderRef);
+            const db = getFirestore();
+            const snapshot = await getDocs(collection(db, "messages"));
 
-                if (res.items.length === 0) {
-                    container.innerHTML = `
-                        <div class="no-conversations">
-                            Aucune image trouvée dans messages/ 📭
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = '';
-
-                for (const itemRef of res.items) {
-                    const url = await getDownloadURL(itemRef);
-                    const fileName = decodeURIComponent(itemRef.name);
-
-                    // Extrait une date fictive et une description à partir du nom de fichier
-                    const dateStr = fileName.split('_')[0];
-                    const description = fileName.split('_')[1]?.replace(/\.[^/.]+$/, '') || 'Message';
-
-                    const formattedDate = new Date(Number(dateStr)).toLocaleDateString('fr-FR', {
-                        day: '2-digit', month: 'long', year: 'numeric'
-                    });
-
-                    const block = document.createElement('div');
-                    block.className = 'conversation-block';
-                    block.innerHTML = `
-                        <div class="conversation-date">${formattedDate}</div>
-                        <div class="conversation-text">${description}</div>
-                        <img src="${url}" class="conversation-image" alt="Message">
-                    `;
-
-                    container.appendChild(block);
-                }
-
-                updateScrollbarColor();
-            } catch (error) {
-                console.error("Erreur lors du chargement des messages :", error);
+            if (snapshot.empty) {
                 container.innerHTML = `
                     <div class="no-conversations">
-                        Erreur de chargement 😞<br>
-                        <small>Vérifiez la connexion ou les droits Firebase</small>
+                        Aucun message pour le moment 🥺<br>
+                        <small>Ajoutez-en via la page Admin !</small>
                     </div>
                 `;
+                return;
             }
+
+            container.innerHTML = '';
+            const colors = [
+                '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
+                '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
+                '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
+                '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
+            ];
+
+            let i = 0;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const formattedDate = new Date(data.date).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
+                const block = document.createElement('div');
+                block.className = 'conversation-block';
+                block.style.borderLeftColor = colors[i % colors.length];
+                block.innerHTML = `
+                    <div class="conversation-date">${formattedDate}</div>
+                    <div class="conversation-text">${data.description}</div>
+                    <img src="${data.photoURL}" class="conversation-image" alt="${data.description}">
+                `;
+
+                container.appendChild(block);
+                i++;
+            });
+
+            updateScrollbarColor();
         }
 
         function updateScrollbarColor() {

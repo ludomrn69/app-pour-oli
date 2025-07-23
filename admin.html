@@ -375,6 +375,23 @@
                 <div id="messageMessage"></div>
             </div>
         </div>
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Supprimer un Souvenir 🗑</h2>
+            </div>
+            <div class="section-content" id="deleteMemoriesList">
+                Chargement des souvenirs...
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <div class="section-header">
+                <h2>Supprimer une Conversation 🗑</h2>
+            </div>
+            <div class="section-content" id="deleteMessagesList">
+                Chargement des messages...
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK -->
@@ -385,6 +402,8 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -419,6 +438,8 @@
                 // Ajout du message de bienvenue personnalisé dans la navbar
                 const navbar = document.querySelector('.navbar');
                 const greeting = document.createElement('div');
+                renderDeletableItems("memories", "deleteMemoriesList");
+                renderDeletableItems("conversations", "deleteMessagesList");
                 greeting.textContent = `Bonjour, ${user.email} 👋`;
                 greeting.style.fontWeight = '500';
                 greeting.style.fontSize = '14px';
@@ -569,6 +590,50 @@
             submitBtn.disabled = false;
             submitBtn.textContent = 'Ajouter la conversation 💕';
         });
+        async function renderDeletableItems(collectionName, containerId) {
+    const snapshot = await getDocs(collection(db, collectionName));
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const card = document.createElement('div');
+        card.style.border = '1px solid #ccc';
+        card.style.padding = '10px';
+        card.style.marginBottom = '10px';
+        card.style.borderRadius = '10px';
+        card.style.background = '#fff';
+
+        card.innerHTML = `
+            <strong>${data.title || 'Message'}</strong><br>
+            <small>${data.date}</small><br>
+            ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:80px;margin:5px 0;">` : ''}
+            <p style="font-size: 14px;">${data.description}</p>
+            <button style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+                Supprimer
+            </button>
+        `;
+
+        card.querySelector('button').addEventListener('click', async () => {
+            if (confirm("Tu es sûr(e) de vouloir supprimer ?")) {
+                try {
+                    await deleteDoc(doc(db, collectionName, docSnap.id));
+                    if (data.photoURL) {
+                        const path = data.photoURL.split('/o/')[1].split('?')[0];
+                        const decodedPath = decodeURIComponent(path);
+                        const storageRefToDelete = ref(storage, decodedPath);
+                        await deleteObject(storageRefToDelete);
+                    }
+                    card.remove();
+                } catch (err) {
+                    alert("Erreur lors de la suppression : " + err.message);
+                }
+            }
+        });
+
+        container.appendChild(card);
+    });
+}
     </script>
 </body>
 </html>
