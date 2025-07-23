@@ -416,6 +416,15 @@
             if (user) {
                 loginContainer.style.display = 'none';
                 adminInterface.style.display = 'grid';
+                // Ajout du message de bienvenue personnalisé dans la navbar
+                const navbar = document.querySelector('.navbar');
+                const greeting = document.createElement('div');
+                greeting.textContent = `Bonjour, ${user.email} 👋`;
+                greeting.style.fontWeight = '500';
+                greeting.style.fontSize = '14px';
+                greeting.style.color = '#2c3e50';
+                greeting.style.marginLeft = '20px';
+                navbar.appendChild(greeting);
             } else {
                 loginContainer.style.display = 'block';
                 adminInterface.style.display = 'none';
