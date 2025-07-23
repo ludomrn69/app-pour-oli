@@ -419,7 +419,7 @@
                     </div>
                     <div class="memory-content">
                         <p class="memory-text">${data.description}</p>
-                        <img src="${data.photoURL}" alt="${data.title}" class="memory-photo">
+                        ${data.photoURL ? `<img src="${data.photoURL}" alt="${data.title}" class="memory-photo">` : ''}
                     </div>
                 `;
 
