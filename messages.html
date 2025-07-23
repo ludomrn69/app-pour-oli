@@ -341,6 +341,7 @@
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+        import { getStorage, ref as storageRef, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -373,121 +374,56 @@
             }
         }
 
-        // Load conversations from Firebase
+        // Load conversations from Firebase Storage
         async function loadConversations() {
             const container = document.getElementById('conversationsContainer');
-            
+            const storage = getStorage();
+
             try {
-                const q = query(collection(db, 'conversations'), orderBy('date', 'desc'));
-                const querySnapshot = await getDocs(q);
-                
-                // Combine Firebase conversations with existing static ones
-                const staticConversations = [
-                    {
-                        date: "2025-04-07",
-                        description: "SMS le lendemain du grand weekend, c'était dur de réaliser",
-                        photoURL: "messages/lundi07:04.png"
-                    },
-                    {
-                        date: "2025-04-06",
-                        description: "2ème date le lendemain avec humour mdrrr",
-                        photoURL: "messages/debutSMS.png"
-                    },
-                    {
-                        date: "2025-04-05",
-                        description: "Petite organisation juste avant de se voir pour la première fois",
-                        photoURL: "messages/orga1erJour.png"
-                    },
-                    {
-                        date: "2025-04-02",
-                        description: "Besoin de respirer et au final regarde :",
-                        photoURL: "messages/respire2avril.png",
-                        special: true
-                    },
-                    {
-                        date: "2025-04-02",
-                        description: "La folle au signe 🤣<br> On peut dire maintenant que c'est bon?",
-                        photoURL: "messages/2scorpions.png"
-                    },
-                    {
-                        date: "2025-04-02",
-                        description: "Premier message sur insta 😏<br> Je suis tombé amoureux mais chut",
-                        photoURL: "messages/debutinsta.png"
-                    }
-                ];
-                
-                // Combine and sort all conversations
-                const allConversations = [...staticConversations];
-                
-                querySnapshot.forEach((doc) => {
-                    const conversation = doc.data();
-                    allConversations.push(conversation);
-                });
-                
-                // Sort by date (newest first)
-                allConversations.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                if (allConversations.length === 0) {
+                const folderRef = storageRef(storage, 'messages');
+                const res = await listAll(folderRef);
+
+                if (res.items.length === 0) {
                     container.innerHTML = `
                         <div class="no-conversations">
-                            Aucune conversation pour le moment 🥺<br>
-                            <small>Ajoutez-en via la page Admin !</small>
+                            Aucune image trouvée dans messages/ 📭
                         </div>
                     `;
                     return;
                 }
-                
+
                 container.innerHTML = '';
-                const colors = [
-                    '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
-                    '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
-                    '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
-                    '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
-                ];
-                
-                allConversations.forEach((conversation, index) => {
-                    const randomColor = colors[index % colors.length];
-                    
-                    // Format date
-                    const date = new Date(conversation.date);
-                    const formattedDate = date.toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric'
+
+                for (const itemRef of res.items) {
+                    const url = await getDownloadURL(itemRef);
+                    const fileName = decodeURIComponent(itemRef.name);
+
+                    // Extrait une date fictive et une description à partir du nom de fichier
+                    const dateStr = fileName.split('_')[0];
+                    const description = fileName.split('_')[1]?.replace(/\.[^/.]+$/, '') || 'Message';
+
+                    const formattedDate = new Date(Number(dateStr)).toLocaleDateString('fr-FR', {
+                        day: '2-digit', month: 'long', year: 'numeric'
                     });
-                    
-                    const conversationBlock = document.createElement('div');
-                    conversationBlock.className = 'conversation-block';
-                    conversationBlock.style.borderLeftColor = randomColor;
-                    
-                    // Special handling for the counter conversation
-                    let specialContent = '';
-                    if (conversation.special) {
-                        const startDate = new Date("2025-04-14");
-                        const today = new Date();
-                        const diffTime = today - startDate;
-                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                        specialContent = `<div class="counter-text">Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️</div>`;
-                    }
-                    
-                    conversationBlock.innerHTML = `
+
+                    const block = document.createElement('div');
+                    block.className = 'conversation-block';
+                    block.innerHTML = `
                         <div class="conversation-date">${formattedDate}</div>
-                        <div class="conversation-text">${conversation.description}</div>
-                        ${specialContent}
-                        <img src="${conversation.photoURL}" alt="Conversation ${formattedDate}" class="conversation-image">
+                        <div class="conversation-text">${description}</div>
+                        <img src="${url}" class="conversation-image" alt="Message">
                     `;
-                    
-                    container.appendChild(conversationBlock);
-                });
-                
+
+                    container.appendChild(block);
+                }
+
                 updateScrollbarColor();
-                
             } catch (error) {
-                console.error("Erreur lors du chargement des conversations:", error);
+                console.error("Erreur lors du chargement des messages :", error);
                 container.innerHTML = `
                     <div class="no-conversations">
-                        Erreur lors du chargement des conversations 😞<br>
-                        <small>Vérifiez votre connexion internet</small>
+                        Erreur de chargement 😞<br>
+                        <small>Vérifiez la connexion ou les droits Firebase</small>
                     </div>
                 `;
             }

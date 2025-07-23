@@ -352,6 +352,7 @@
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+        import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -371,15 +372,19 @@
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
 
-        // Load memories from Firebase
+        // Nouvelle version : Load memories from Firebase Storage
         async function loadMemories() {
             const container = document.getElementById('memoriesContainer');
-            
+
+            container.innerHTML = `<div class="loading">Chargement des souvenirs... ✨</div>`;
+
+            const storage = getStorage();
+            const memoriesRef = ref(storage, 'souvenirs');
+
             try {
-                // On récupère tous les souvenirs sans tri (on le fera côté client)
-                const querySnapshot = await getDocs(collection(db, 'memories'));
-                
-                if (querySnapshot.empty) {
+                const res = await listAll(memoriesRef);
+
+                if (res.items.length === 0) {
                     container.innerHTML = `
                         <div class="no-memories">
                             Aucun souvenir pour le moment 🥺<br>
@@ -388,17 +393,7 @@
                     `;
                     return;
                 }
-                
-                // Convertir en array et trier par date (la plus récente en premier)
-                const memories = [];
-                querySnapshot.forEach((doc) => {
-                    const memory = doc.data();
-                    memories.push(memory);
-                });
-                
-                // Tri par date décroissante (plus récente en premier)
-                memories.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
+
                 container.innerHTML = '';
                 const colors = [
                     '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
@@ -406,38 +401,40 @@
                     '#E17055','#6C5CE7','#A8E6CF','#FFB8B8','#C7ECEE','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F',
                     '#BB8FCE','#85C1E9','#F8C471','#82E0AA','#F1948A','#AED6F1','#D7BDE2','#A3E4D7','#FAD7A0'
                 ];
-                
-                memories.forEach((memory, index) => {
-                    const randomColor = colors[index % colors.length];
-                    
-                    // Format date - on utilise la date renseignée dans le formulaire
-                    const date = new Date(memory.date);
+
+                for (let i = 0; i < res.items.length; i++) {
+                    const itemRef = res.items[i];
+                    const url = await getDownloadURL(itemRef);
+                    const name = itemRef.name; // e.g. 1753308135247_debutinsta.png
+
+                    const [timestampStr, ...descParts] = name.split('_');
+                    const desc = descParts.join('_').replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+                    const date = new Date(Number(timestampStr));
                     const formattedDate = date.toLocaleDateString('fr-FR', {
                         day: '2-digit',
                         month: 'long',
                         year: 'numeric'
                     });
-                    
+
                     const memoryCard = document.createElement('div');
                     memoryCard.className = 'memory-card';
-                    memoryCard.style.borderLeftColor = randomColor;
-                    
+                    memoryCard.style.borderLeftColor = colors[i % colors.length];
                     memoryCard.innerHTML = `
                         <div class="memory-header">
-                            <h3 class="memory-title">${memory.title}</h3>
+                            <h3 class="memory-title">${desc}</h3>
                             <div class="memory-date">${formattedDate}</div>
                         </div>
                         <div class="memory-content">
-                            ${memory.photoURL ? `<img src="${memory.photoURL}" alt="${memory.title}" class="memory-photo">` : ''}
-                            <p class="memory-text">${memory.description}</p>
+                            <img src="${url}" alt="${desc}" class="memory-photo">
+                            <p class="memory-text">Souvenir précieux avec toi ❤️</p>
                         </div>
                     `;
-                    
+
                     container.appendChild(memoryCard);
-                });
-                
+                }
+
                 updateScrollbarColor();
-                
+
             } catch (error) {
                 console.error("Erreur lors du chargement des souvenirs:", error);
                 container.innerHTML = `
