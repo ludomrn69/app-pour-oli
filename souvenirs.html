@@ -765,20 +765,18 @@ onAuthStateChanged(auth, user => {
 // Préremplir les filtres depuis localStorage (après chargement DOM)
 window.addEventListener("DOMContentLoaded", () => {
     const savedLocation = localStorage.getItem("selectedLocation");
-    const savedType = localStorage.getItem("selectedType");
 
-    if (savedLocation) {
-        // Attendre un court délai pour s'assurer que les options sont chargées
-        setTimeout(() => {
-            const locationFilter = document.getElementById("locationFilter");
+    setTimeout(() => {
+        const locationFilter = document.getElementById("locationFilter");
+        if (savedLocation) {
             const option = Array.from(locationFilter.options).find(opt => opt.value === savedLocation);
             if (option) {
                 locationFilter.value = savedLocation;
                 locationFilter.dispatchEvent(new Event("change"));
             }
-            loadMemories();
-        }, 300);
-    }
+        }
+        loadMemories();
+    }, 300);
 });
 
         // Responsive navigation toggle
