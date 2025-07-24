@@ -680,7 +680,7 @@
                     let region = match.address?.region || match.address?.state || 'Inconnu';
                     let department = match.address?.county?.replace("Métropole de ", "") || 'Inconnu';
 
-                    if (match.address?.country === "France") {
+                    if ((match.address?.country || "").toLowerCase().includes("france")) {
                         try {
                             const apiGouvResp = await fetch(`https://geo.api.gouv.fr/communes?lat=${match.lat}&lon=${match.lon}&fields=departement,region&format=json`);
                             const gouvData = await apiGouvResp.json();
