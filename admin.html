@@ -490,7 +490,7 @@
                     <div class="form-group">
                         <label class="form-label">Photo (optionnelle)</label>
                         <div class="file-input-container">
-                            <input type="file" id="memoryPhoto" class="file-input" accept="image/*">
+                            <input type="file" id="memoryPhoto" class="file-input" accept="image/*" multiple>
                             <label for="memoryPhoto" class="file-input-label">
                                 📸 Choisir une photo
                             </label>
@@ -527,7 +527,7 @@
                     <div class="form-group">
                         <label class="form-label">Screenshot de la conversation</label>
                         <div class="file-input-container">
-                            <input type="file" id="messagePhoto" class="file-input" accept="image/*" required>
+                            <input type="file" id="messagePhoto" class="file-input" accept="image/*" multiple required>
                             <label for="messagePhoto" class="file-input-label">
                                 📱 Choisir le screenshot
                             </label>
@@ -675,14 +675,38 @@
 
         function previewImage(input, containerId) {
             const container = document.getElementById(containerId);
-            container.innerHTML = '';
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    container.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
-                };
-                reader.readAsDataURL(input.files[0]);
+
+            if (input.files && input.files.length > 0) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.style.position = 'relative';
+                        wrapper.style.display = 'inline-block';
+                        wrapper.style.margin = '5px';
+
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-image';
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.textContent = '✖';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '5px';
+                        removeBtn.style.right = '5px';
+                        removeBtn.style.background = 'rgba(255,0,0,0.7)';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.onclick = () => wrapper.remove();
+
+                        wrapper.appendChild(img);
+                        wrapper.appendChild(removeBtn);
+                        container.appendChild(wrapper);
+                    };
+                    reader.readAsDataURL(file);
+                });
             }
         }
 
@@ -691,10 +715,19 @@
             const timestamp = Date.now();
             const fileName = `${folder}/${timestamp}_${file.name}`;
             const storageRef = ref(storage, fileName);
-            
             const snapshot = await uploadBytes(storageRef, file);
             const downloadURL = await getDownloadURL(snapshot.ref);
             return downloadURL;
+        }
+
+        // Upload multiple images to Firebase Storage
+        async function uploadMultipleImages(files, folder) {
+            const urls = [];
+            for (const file of files) {
+                const url = await uploadImage(file, folder);
+                urls.push(url);
+            }
+            return urls;
         }
 
         // Global editing state
@@ -707,37 +740,45 @@
             e.preventDefault();
             const submitBtn = document.getElementById('memorySubmit');
             const messageDiv = document.getElementById('memoryMessage');
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = editingItem && editingType === 'memories' ? 'Modification en cours...' : 'Ajout en cours...';
-            
+
             try {
                 const title = document.getElementById('memoryTitle').value;
                 const date = document.getElementById('memoryDate').value;
                 const description = document.getElementById('memoryDescription').value;
-                const photoFile = document.getElementById('memoryPhoto').files[0];
+                const photoFiles = document.getElementById('memoryPhoto').files;
                 const location = document.getElementById('memoryLocation').value;
 
                 // Edition mode
                 if (editingItem && editingType === 'memories') {
                     // Si une nouvelle image est fournie, supprimer l'ancienne
-                    if (photoFile && originalPhotoURL) {
+                    if (photoFiles.length > 0 && originalPhotoURL) {
                         const path = originalPhotoURL.split('/o/')[1].split('?')[0];
                         const decodedPath = decodeURIComponent(path);
                         const storageRefToDelete = ref(storage, decodedPath);
                         await deleteObject(storageRefToDelete);
                     }
 
-                    let newPhotoURL = originalPhotoURL;
-                    if (photoFile) {
-                        newPhotoURL = await uploadImage(photoFile, 'memories');
+                    // Remplacer par le tableau des images actuellement visibles dans le preview
+                    let newPhotoURLs = [];
+                    document.querySelectorAll('#memoryPreview img').forEach(img => {
+                        if (img.src.startsWith('https://firebasestorage.googleapis.com')) {
+                            newPhotoURLs.push(img.src);
+                        }
+                    });
+                    if (photoFiles.length > 0) {
+                        // Ajouter les nouvelles images uploadées
+                        const uploaded = await uploadMultipleImages(photoFiles, 'memories');
+                        newPhotoURLs = newPhotoURLs.concat(uploaded);
                     }
 
                     await updateDoc(doc(db, 'memories', editingItem), {
                         title,
                         date,
                         description,
-                        photoURL: newPhotoURL,
+                        photoURLs: newPhotoURLs,
                         location
                     });
 
@@ -753,30 +794,30 @@
                     submitBtn.disabled = false;
                     return;
                 }
-                
-                let photoURL = null;
-                if (photoFile) {
-                    photoURL = await uploadImage(photoFile, 'memories');
+
+                let photoURLs = [];
+                if (photoFiles.length > 0) {
+                    photoURLs = await uploadMultipleImages(photoFiles, 'memories');
                 }
-                
+
                 await addDoc(collection(db, 'memories'), {
                     title,
                     date,
                     description,
-                    photoURL,
+                    photoURLs: photoURLs,
                     location,
                     createdAt: serverTimestamp(),
                     createdBy: auth.currentUser.email
                 });
-                
+
                 messageDiv.innerHTML = '<div class="success-message">Souvenir ajouté avec succès ! ✨</div>';
                 memoryForm.reset();
                 document.getElementById('memoryPreview').innerHTML = '';
-                
+
             } catch (error) {
                 messageDiv.innerHTML = `<div class="error-message">Erreur: ${error.message}</div>`;
             }
-            
+
             submitBtn.disabled = false;
             submitBtn.textContent = 'Ajouter le souvenir ✨';
         });
@@ -786,36 +827,44 @@
             e.preventDefault();
             const submitBtn = document.getElementById('messageSubmit');
             const messageDiv = document.getElementById('messageMessage');
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = editingItem && editingType === 'conversations' ? 'Modification en cours...' : 'Ajout en cours...';
-            
+
             try {
                 const date = document.getElementById('messageDate').value;
                 const description = document.getElementById('messageDescription').value;
                 const title = document.getElementById('messageTitle').value;
-                const photoFile = document.getElementById('messagePhoto').files[0];
+                const photoFiles = document.getElementById('messagePhoto').files;
 
                 // Edition mode
                 if (editingItem && editingType === 'conversations') {
                     // Si une nouvelle image est fournie, supprimer l'ancienne
-                    if (photoFile && originalPhotoURL) {
+                    if (photoFiles.length > 0 && originalPhotoURL) {
                         const path = originalPhotoURL.split('/o/')[1].split('?')[0];
                         const decodedPath = decodeURIComponent(path);
                         const storageRefToDelete = ref(storage, decodedPath);
                         await deleteObject(storageRefToDelete);
                     }
 
-                    let newPhotoURL = originalPhotoURL;
-                    if (photoFile) {
-                        newPhotoURL = await uploadImage(photoFile, 'messages');
+                    // Remplacer par le tableau des images actuellement visibles dans le preview
+                    let newPhotoURLs = [];
+                    document.querySelectorAll('#messagePreview img').forEach(img => {
+                        if (img.src.startsWith('https://firebasestorage.googleapis.com')) {
+                            newPhotoURLs.push(img.src);
+                        }
+                    });
+                    if (photoFiles.length > 0) {
+                        // Ajouter les nouvelles images uploadées
+                        const uploaded = await uploadMultipleImages(photoFiles, 'messages');
+                        newPhotoURLs = newPhotoURLs.concat(uploaded);
                     }
 
                     await updateDoc(doc(db, 'conversations', editingItem), {
                         title,
                         date,
                         description,
-                        photoURL: newPhotoURL
+                        photoURLs: newPhotoURLs
                     });
 
                     messageDiv.innerHTML = '<div class="success-message">Conversation modifiée avec succès ! 💕</div>';
@@ -830,30 +879,30 @@
                     submitBtn.disabled = false;
                     return;
                 }
-                
-                if (!photoFile) {
+
+                if (!photoFiles || photoFiles.length === 0) {
                     throw new Error('Une image est requise pour les conversations');
                 }
-                
-                const photoURL = await uploadImage(photoFile, 'messages');
-                
+
+                const photoURLs = await uploadMultipleImages(photoFiles, 'messages');
+
                 await addDoc(collection(db, 'conversations'), {
                     title,
                     date,
                     description,
-                    photoURL,
+                    photoURLs: photoURLs,
                     createdAt: serverTimestamp(),
                     createdBy: auth.currentUser.email
                 });
-                
+
                 messageDiv.innerHTML = '<div class="success-message">Conversation ajoutée avec succès ! 💕</div>';
                 messageForm.reset();
                 document.getElementById('messagePreview').innerHTML = '';
-                
+
             } catch (error) {
                 messageDiv.innerHTML = `<div class="error-message">Erreur: ${error.message}</div>`;
             }
-            
+
             submitBtn.disabled = false;
             submitBtn.textContent = 'Ajouter la conversation 💕';
         });
@@ -880,7 +929,7 @@
                         <small>${formattedDate}</small>
                     </div>
                     <p style="font-size: 14px; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 10px;">${data.description}</p>
-                    ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:120px; margin:10px 0; display: block;">` : ''}
+                    ${Array.isArray(data.photoURLs) ? data.photoURLs.map(url => `<img src="${url}" style="max-height:120px; margin:10px 0; display: block;">`).join('') : ''}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                         <div style="color: white; background: linear-gradient(135deg, #a18cd1, #fbc2eb); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
                             ${data.location ? `📍 ${data.location}` : ''}
@@ -901,11 +950,13 @@
                     if (confirm("Tu es sûr(e) de vouloir supprimer ?")) {
                         try {
                             await deleteDoc(doc(db, collectionName, docSnap.id));
-                            if (data.photoURL) {
-                                const path = data.photoURL.split('/o/')[1].split('?')[0];
-                                const decodedPath = decodeURIComponent(path);
-                                const storageRefToDelete = ref(storage, decodedPath);
-                                await deleteObject(storageRefToDelete);
+                            if (Array.isArray(data.photoURLs)) {
+                                for (const url of data.photoURLs) {
+                                    const path = url.split('/o/')[1].split('?')[0];
+                                    const decodedPath = decodeURIComponent(path);
+                                    const storageRefToDelete = ref(storage, decodedPath);
+                                    await deleteObject(storageRefToDelete);
+                                }
                             }
                             card.remove();
                         } catch (err) {
@@ -918,7 +969,7 @@
                 card.querySelector('.edit-button').addEventListener('click', () => {
                     editingItem = docSnap.id;
                     editingType = collectionName;
-                    originalPhotoURL = data.photoURL;
+                    originalPhotoURL = Array.isArray(data.photoURLs) ? data.photoURLs[0] : null;
 
                     if (collectionName === "memories") {
                         document.getElementById('memoryTitle').value = data.title || '';
@@ -928,6 +979,36 @@
                         document.getElementById('memorySubmit').textContent = 'Modifier le souvenir ✨';
                         document.getElementById('cancelMemoryEdit').style.display = 'block';
                         document.getElementById('memoryPreview').innerHTML = '';
+                        // Ajout preview images éditables
+                        if (Array.isArray(data.photoURLs)) {
+                            const container = document.getElementById('memoryPreview');
+                            data.photoURLs.forEach((url) => {
+                                const wrapper = document.createElement('div');
+                                wrapper.style.position = 'relative';
+                                wrapper.style.display = 'inline-block';
+                                wrapper.style.margin = '5px';
+
+                                const img = document.createElement('img');
+                                img.src = url;
+                                img.className = 'preview-image';
+                                wrapper.appendChild(img);
+
+                                const removeBtn = document.createElement('button');
+                                removeBtn.textContent = '✖';
+                                removeBtn.style.position = 'absolute';
+                                removeBtn.style.top = '5px';
+                                removeBtn.style.right = '5px';
+                                removeBtn.style.background = 'rgba(255,0,0,0.7)';
+                                removeBtn.style.color = 'white';
+                                removeBtn.style.border = 'none';
+                                removeBtn.style.borderRadius = '50%';
+                                removeBtn.style.cursor = 'pointer';
+                                removeBtn.onclick = () => wrapper.remove();
+
+                                wrapper.appendChild(removeBtn);
+                                container.appendChild(wrapper);
+                            });
+                        }
                     } else if (collectionName === "conversations") {
                         document.getElementById('messageTitle').value = data.title || '';
                         document.getElementById('messageDate').value = data.date || '';
@@ -935,6 +1016,36 @@
                         document.getElementById('messageSubmit').textContent = 'Modifier la conversation 💕';
                         document.getElementById('cancelMessageEdit').style.display = 'block';
                         document.getElementById('messagePreview').innerHTML = '';
+                        // Ajout preview images éditables
+                        if (Array.isArray(data.photoURLs)) {
+                            const container = document.getElementById('messagePreview');
+                            data.photoURLs.forEach((url) => {
+                                const wrapper = document.createElement('div');
+                                wrapper.style.position = 'relative';
+                                wrapper.style.display = 'inline-block';
+                                wrapper.style.margin = '5px';
+
+                                const img = document.createElement('img');
+                                img.src = url;
+                                img.className = 'preview-image';
+                                wrapper.appendChild(img);
+
+                                const removeBtn = document.createElement('button');
+                                removeBtn.textContent = '✖';
+                                removeBtn.style.position = 'absolute';
+                                removeBtn.style.top = '5px';
+                                removeBtn.style.right = '5px';
+                                removeBtn.style.background = 'rgba(255,0,0,0.7)';
+                                removeBtn.style.color = 'white';
+                                removeBtn.style.border = 'none';
+                                removeBtn.style.borderRadius = '50%';
+                                removeBtn.style.cursor = 'pointer';
+                                removeBtn.onclick = () => wrapper.remove();
+
+                                wrapper.appendChild(removeBtn);
+                                container.appendChild(wrapper);
+                            });
+                        }
                     }
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });

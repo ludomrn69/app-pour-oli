@@ -680,20 +680,21 @@
                         ? match.geojson
                         : null;
                     // Nouvelle logique enrichissement France
-                    let region = match.address?.region || match.address?.state || 'Inconnu';
-                    let department = match.address?.county?.replace("Métropole de ", "") || 'Inconnu';
+                    // let region = match.address?.region || match.address?.state || 'Inconnu';
+                    // let department = match.address?.county?.replace("Métropole de ", "") || 'Inconnu';
+                    let region = 'Inconnu';
+                    let department = 'Inconnu';
 
-                    if ((match.address?.country || "").toLowerCase().includes("france")) {
-                        try {
-                            const apiGouvResp = await fetch(`https://geo.api.gouv.fr/communes?lat=${match.lat}&lon=${match.lon}&fields=departement,region&format=json`);
-                            const gouvData = await apiGouvResp.json();
-                            if (gouvData.length > 0) {
-                                department = gouvData[0].departement.nom;
-                                region = gouvData[0].region.nom;
-                            }
-                        } catch (err) {
-                            console.warn("Erreur Geo API Gouv:", err);
+                    // Remplacer la condition France par un fetch inconditionnel
+                    try {
+                        const apiGouvResp = await fetch(`https://geo.api.gouv.fr/communes?lat=${match.lat}&lon=${match.lon}&fields=departement,region&format=json`);
+                        const gouvData = await apiGouvResp.json();
+                        if (Array.isArray(gouvData) && gouvData.length > 0) {
+                            if (gouvData[0].region?.nom) region = gouvData[0].region.nom;
+                            if (gouvData[0].departement?.nom) department = gouvData[0].departement.nom;
                         }
+                    } catch (err) {
+                        console.warn("Erreur Geo API Gouv:", err);
                     }
 
                     return {
