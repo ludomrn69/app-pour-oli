@@ -424,20 +424,20 @@
                 <div id="messageMessage"></div>
             </div>
         </div>
-        <div class="admin-section">
+        <div class="admin-section" style="display: flex; flex-direction: column; height: 100%; max-height: 600px; overflow-y: auto;">
             <div class="section-header">
-                <h2>Supprimer un Souvenir 🗑</h2>
+                <h2>Modifier ou supprimer un souvenir ✏️🗑</h2>
             </div>
-            <div class="section-content" id="deleteMemoriesList">
+            <div class="section-content" id="deleteMemoriesList" style="overflow-y: auto; flex-grow: 1;">
                 Chargement des souvenirs...
             </div>
         </div>
 
-        <div class="admin-section">
+        <div class="admin-section" style="display: flex; flex-direction: column; height: 100%; max-height: 600px; overflow-y: auto;">
             <div class="section-header">
-                <h2>Supprimer une Conversation 🗑</h2>
+                <h2>Modifier ou supprimer une conversation ✏️🗑</h2>
             </div>
-            <div class="section-content" id="deleteMessagesList">
+            <div class="section-content" id="deleteMessagesList" style="overflow-y: auto; flex-grow: 1;">
                 Chargement des messages...
             </div>
         </div>
@@ -492,7 +492,7 @@
                 greeting.textContent = `Bonjour, ${user.email} 👋`;
                 greeting.style.fontWeight = '500';
                 greeting.style.fontSize = '14px';
-                greeting.style.color = '#2c3e50';
+                greeting.style.color = 'white';
             } else {
                 loginContainer.style.display = 'block';
                 adminInterface.style.display = 'none';
@@ -557,6 +557,11 @@
             return downloadURL;
         }
 
+        // Global editing state
+        let editingItem = null;
+        let editingType = null;
+        let originalPhotoURL = null;
+
         // Add memory
         memoryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -564,13 +569,47 @@
             const messageDiv = document.getElementById('memoryMessage');
             
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Ajout en cours...';
+            submitBtn.textContent = editingItem && editingType === 'memories' ? 'Modification en cours...' : 'Ajout en cours...';
             
             try {
                 const title = document.getElementById('memoryTitle').value;
                 const date = document.getElementById('memoryDate').value;
                 const description = document.getElementById('memoryDescription').value;
                 const photoFile = document.getElementById('memoryPhoto').files[0];
+
+                // Edition mode
+                if (editingItem && editingType === 'memories') {
+                    // Si une nouvelle image est fournie, supprimer l'ancienne
+                    if (photoFile && originalPhotoURL) {
+                        const path = originalPhotoURL.split('/o/')[1].split('?')[0];
+                        const decodedPath = decodeURIComponent(path);
+                        const storageRefToDelete = ref(storage, decodedPath);
+                        await deleteObject(storageRefToDelete);
+                    }
+
+                    let newPhotoURL = originalPhotoURL;
+                    if (photoFile) {
+                        newPhotoURL = await uploadImage(photoFile, 'memories');
+                    }
+
+                    await updateDoc(doc(db, 'memories', editingItem), {
+                        title,
+                        date,
+                        description,
+                        photoURL: newPhotoURL
+                    });
+
+                    messageDiv.innerHTML = '<div class="success-message">Souvenir modifié avec succès ! ✨</div>';
+                    editingItem = null;
+                    editingType = null;
+                    originalPhotoURL = null;
+                    document.getElementById('memorySubmit').textContent = 'Ajouter le souvenir ✨';
+                    document.getElementById('cancelMemoryEdit').style.display = 'none';
+                    memoryForm.reset();
+                    document.getElementById('memoryPreview').innerHTML = '';
+                    renderDeletableItems("memories", "deleteMemoriesList");
+                    return;
+                }
                 
                 let photoURL = null;
                 if (photoFile) {
@@ -605,13 +644,47 @@
             const messageDiv = document.getElementById('messageMessage');
             
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Ajout en cours...';
+            submitBtn.textContent = editingItem && editingType === 'conversations' ? 'Modification en cours...' : 'Ajout en cours...';
             
             try {
                 const date = document.getElementById('messageDate').value;
                 const description = document.getElementById('messageDescription').value;
                 const title = document.getElementById('messageTitle').value;
                 const photoFile = document.getElementById('messagePhoto').files[0];
+
+                // Edition mode
+                if (editingItem && editingType === 'conversations') {
+                    // Si une nouvelle image est fournie, supprimer l'ancienne
+                    if (photoFile && originalPhotoURL) {
+                        const path = originalPhotoURL.split('/o/')[1].split('?')[0];
+                        const decodedPath = decodeURIComponent(path);
+                        const storageRefToDelete = ref(storage, decodedPath);
+                        await deleteObject(storageRefToDelete);
+                    }
+
+                    let newPhotoURL = originalPhotoURL;
+                    if (photoFile) {
+                        newPhotoURL = await uploadImage(photoFile, 'messages');
+                    }
+
+                    await updateDoc(doc(db, 'conversations', editingItem), {
+                        title,
+                        date,
+                        description,
+                        photoURL: newPhotoURL
+                    });
+
+                    messageDiv.innerHTML = '<div class="success-message">Conversation modifiée avec succès ! 💕</div>';
+                    editingItem = null;
+                    editingType = null;
+                    originalPhotoURL = null;
+                    document.getElementById('messageSubmit').textContent = 'Ajouter la conversation 💕';
+                    document.getElementById('cancelMessageEdit').style.display = 'none';
+                    messageForm.reset();
+                    document.getElementById('messagePreview').innerHTML = '';
+                    renderDeletableItems("conversations", "deleteMessagesList");
+                    return;
+                }
                 
                 if (!photoFile) {
                     throw new Error('Une image est requise pour les conversations');
@@ -640,54 +713,127 @@
             submitBtn.textContent = 'Ajouter la conversation 💕';
         });
         async function renderDeletableItems(collectionName, containerId) {
-    const snapshot = await getDocs(collection(db, collectionName));
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
+            const snapshot = await getDocs(collection(db, collectionName));
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-    snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        // Format date in dd/mm/YYYY (fr-FR)
-        const formattedDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '';
-        const card = document.createElement('div');
-        card.style.border = '1px solid #ccc';
-        card.style.padding = '10px';
-        card.style.marginBottom = '10px';
-        card.style.borderRadius = '10px';
-        card.style.background = '#fff';
-        card.style.marginTop = '20px';
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                // Format date in dd/mm/YYYY (fr-FR)
+                const formattedDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '';
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ccc';
+                card.style.padding = '10px';
+                card.style.marginBottom = '10px';
+                card.style.borderRadius = '10px';
+                card.style.background = '#fff';
+                card.style.marginTop = '20px';
 
-        card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <strong>${data.title || 'Message'}</strong>
-                <small>${formattedDate}</small>
-            </div>
-            <p style="font-size: 14px; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 10px;">${data.description}</p>
-            ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:120px; margin:10px 0; display: block;">` : ''}
-            <button style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;display:block;margin-top:10px;">
-                Supprimer
-            </button>
-        `;
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <strong>${data.title || 'Message'}</strong>
+                        <small>${formattedDate}</small>
+                    </div>
+                    <p style="font-size: 14px; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 10px;">${data.description}</p>
+                    ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:120px; margin:10px 0; display: block;">` : ''}
+                    <div style="display: flex; justify-content: flex-start; gap: 10px; margin-top: 10px;">
+                        <button class="edit-button" style="background:#ffa500;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+                            ✏️ Modifier
+                        </button>
+                        <button class="delete-button" style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+                           🗑️ Supprimer
+                        </button>
+                    </div>
+                `;
 
-        card.querySelector('button').addEventListener('click', async () => {
-            if (confirm("Tu es sûr(e) de vouloir supprimer ?")) {
-                try {
-                    await deleteDoc(doc(db, collectionName, docSnap.id));
-                    if (data.photoURL) {
-                        const path = data.photoURL.split('/o/')[1].split('?')[0];
-                        const decodedPath = decodeURIComponent(path);
-                        const storageRefToDelete = ref(storage, decodedPath);
-                        await deleteObject(storageRefToDelete);
+                // Supprimer
+                card.querySelector('.delete-button').addEventListener('click', async () => {
+                    if (confirm("Tu es sûr(e) de vouloir supprimer ?")) {
+                        try {
+                            await deleteDoc(doc(db, collectionName, docSnap.id));
+                            if (data.photoURL) {
+                                const path = data.photoURL.split('/o/')[1].split('?')[0];
+                                const decodedPath = decodeURIComponent(path);
+                                const storageRefToDelete = ref(storage, decodedPath);
+                                await deleteObject(storageRefToDelete);
+                            }
+                            card.remove();
+                        } catch (err) {
+                            alert("Erreur lors de la suppression : " + err.message);
+                        }
                     }
-                    card.remove();
-                } catch (err) {
-                    alert("Erreur lors de la suppression : " + err.message);
-                }
-            }
+                });
+
+                // Modifier
+                card.querySelector('.edit-button').addEventListener('click', () => {
+                    editingItem = docSnap.id;
+                    editingType = collectionName;
+                    originalPhotoURL = data.photoURL;
+
+                    if (collectionName === "memories") {
+                        document.getElementById('memoryTitle').value = data.title || '';
+                        document.getElementById('memoryDate').value = data.date || '';
+                        document.getElementById('memoryDescription').value = data.description || '';
+                        document.getElementById('memorySubmit').textContent = 'Modifier le souvenir ✨';
+                        document.getElementById('cancelMemoryEdit').style.display = 'block';
+                        document.getElementById('memoryPreview').innerHTML = '';
+                    } else if (collectionName === "conversations") {
+                        document.getElementById('messageTitle').value = data.title || '';
+                        document.getElementById('messageDate').value = data.date || '';
+                        document.getElementById('messageDescription').value = data.description || '';
+                        document.getElementById('messageSubmit').textContent = 'Modifier la conversation 💕';
+                        document.getElementById('cancelMessageEdit').style.display = 'block';
+                        document.getElementById('messagePreview').innerHTML = '';
+                    }
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                container.appendChild(card);
+            });
+        }
+        // Bouton Annuler la modification pour souvenirs
+        const cancelMemoryBtn = document.createElement('button');
+        cancelMemoryBtn.type = 'button';
+        cancelMemoryBtn.id = 'cancelMemoryEdit';
+        cancelMemoryBtn.className = 'submit-btn';
+        cancelMemoryBtn.style.marginTop = '10px';
+        cancelMemoryBtn.style.background = 'gray';
+        cancelMemoryBtn.style.display = 'none';
+        cancelMemoryBtn.textContent = 'Annuler';
+        memoryForm.appendChild(cancelMemoryBtn);
+
+        cancelMemoryBtn.addEventListener('click', () => {
+            memoryForm.reset();
+            editingItem = null;
+            editingType = null;
+            originalPhotoURL = null;
+            document.getElementById('memorySubmit').textContent = 'Ajouter le souvenir ✨';
+            document.getElementById('cancelMemoryEdit').style.display = 'none';
+            document.getElementById('memoryPreview').innerHTML = '';
         });
 
-        container.appendChild(card);
-    });
-}
+        // Bouton Annuler la modification pour messages
+        const cancelMessageBtn = document.createElement('button');
+        cancelMessageBtn.type = 'button';
+        cancelMessageBtn.id = 'cancelMessageEdit';
+        cancelMessageBtn.className = 'submit-btn';
+        cancelMessageBtn.style.marginTop = '10px';
+        cancelMessageBtn.style.background = 'gray';
+        cancelMessageBtn.style.display = 'none';
+        cancelMessageBtn.textContent = 'Annuler';
+        messageForm.appendChild(cancelMessageBtn);
+
+        cancelMessageBtn.addEventListener('click', () => {
+            messageForm.reset();
+            editingItem = null;
+            editingType = null;
+            originalPhotoURL = null;
+            document.getElementById('messageSubmit').textContent = 'Ajouter la conversation 💕';
+            document.getElementById('cancelMessageEdit').style.display = 'none';
+            document.getElementById('messagePreview').innerHTML = '';
+        });
+
         // Toggle affichage souvenirs/messages
         const memorySections = [
             document.querySelector("#memoryForm").closest(".admin-section"),

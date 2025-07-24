@@ -470,8 +470,18 @@
             }
         }
 
-        // Load memories when page loads
-        window.addEventListener('load', loadMemories);
+        // Firebase Auth: Only load memories if user is authenticated
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+        const auth = getAuth();
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loadMemories();
+            } else {
+                window.location.href = "admin.html";
+            }
+        });
     </script>
 </body>
 </html>
