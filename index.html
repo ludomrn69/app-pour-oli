@@ -58,21 +58,46 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
             z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            padding: 12px 24px;
+        }
+
+        .navbar-brand-wrapper {
+            display: flex;
             align-items: center;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+        }
+
+        #toggleMenu {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            padding: 4px 10px;
+            cursor: pointer;
+            color: #ff6b6b;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        #toggleMenu:active,
+        #toggleMenu:focus {
+            background: rgba(255, 107, 107, 0.1);
+            outline: none;
         }
 
         .navbar-brand {
             font-size: 18px;
             font-weight: 700;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #a3e635, #48dbfb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -80,8 +105,17 @@
 
         .navbar-nav {
             display: flex;
-            gap: 20px;
+            flex-direction: row;
+            gap: 10px;
             list-style: none;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-nav li {
+            display: block;
+            width: 100%;
         }
 
         .nav-item {
@@ -96,6 +130,9 @@
             border-radius: 20px;
             transition: all 0.3s ease;
             font-size: 14px;
+            display: block;
+            width: 100%;
+            border-radius: 999px;
         }
 
         .nav-link:hover {
@@ -398,6 +435,35 @@
             border-radius: 10px;
         }
 
+        /* Responsive Navbar */
+        @media (max-width: 800px) {
+            .navbar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px 10px;
+            }
+            .navbar-nav {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+                margin-top: 8px;
+                margin-bottom: 4px;
+                display: none;
+            }
+            .navbar-nav li {
+                width: 100%;
+            }
+            .nav-link {
+                width: 100%;
+                text-align: left;
+                font-size: 15px;
+                padding: 10px 18px;
+            }
+            #toggleMenu {
+                display: block;
+            }
+        }
+
         /* Mobile optimizations */
         @media (max-width: 480px) {
             .navbar {
@@ -468,14 +534,17 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">Ludo & Oli ❤️</div>
-        <ul class="navbar-nav">
-            <li><a href="index.html" class="nav-link active">Accueil</a></li>
-            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
-            <li><a href="messages.html" class="nav-link">Messages</a></li>
-            <li><a href="voyages.html" class="nav-link">Voyages</a></li>
-            <li><a href="admin.html" class="nav-link">Admin</a></li>
-        </ul>
+      <div class="navbar-brand-wrapper">
+        <div class="navbar-brand">Oli & Ludo</div>
+        <button id="toggleMenu">☰</button>
+      </div>
+      <ul class="navbar-nav" id="navbarNav">
+        <li><a href="index.html" class="nav-link active">Accueil</a></li>
+        <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+        <li><a href="messages.html" class="nav-link">Messages</a></li>
+        <li><a href="voyages.html" class="nav-link">Voyages</a></li>
+        <li><a href="admin.html" class="nav-link">Admin</a></li>
+      </ul>
     </nav>
 
     <div class="container" id="mainContainer">
@@ -512,98 +581,133 @@
         </div>
     </div>
 
-    <script>
-       
-        function updateDateTime() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            document.getElementById('currentDateTime').textContent = 
-                now.toLocaleDateString('fr-FR', options);
+</body>
+<script>
+    document.getElementById("toggleMenu").addEventListener("click", () => {
+      const nav = document.getElementById("navbarNav");
+      if (nav.style.display === "flex") {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "column";
+      }
+    });
+    function handleResizeNav() {
+      const nav = document.getElementById("navbarNav");
+      if (window.innerWidth <= 800) {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "row";
+      }
+    }
+    window.addEventListener("resize", handleResizeNav);
+    window.addEventListener("DOMContentLoaded", handleResizeNav);
+    document.body.addEventListener('click', function (e) {
+      const toggleButton = document.getElementById("toggleMenu");
+      const navMenu = document.getElementById("navbarNav");
+      if (
+        window.innerWidth <= 800 &&
+        navMenu.style.display === "flex" &&
+        !toggleButton.contains(e.target) &&
+        !navMenu.contains(e.target)
+      ) {
+        navMenu.style.display = "none";
+      }
+    });
+</script>
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        document.getElementById('currentDateTime').textContent =
+            now.toLocaleDateString('fr-FR', options);
+    }
+
+    // Send love animation
+    function sendLove() {
+        const button = document.querySelector('.button');
+        const originalText = button.textContent;
+
+        button.textContent = 'Envoyé un peu de love! ❤️';
+        button.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+
+        // Create floating hearts
+        for (let i = 0; i < 10; i++) {
+            createFloatingHeart();
         }
 
-        // Send love animation
-        function sendLove() {
-            const button = document.querySelector('.button');
-            const originalText = button.textContent;
-            
-            button.textContent = 'Envoyé un peu de love! ❤️';
-            button.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
-            
-            // Create floating hearts
-            for (let i = 0; i < 10; i++) {
-                createFloatingHeart();
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = 'linear-gradient(135deg, #ff6b6b, #feca57)';
+        }, 3000);
+    }
+
+    function createFloatingHeart() {
+        const heart = document.createElement('div');
+        heart.innerHTML = '❤️💙';
+        heart.style.position = 'fixed';
+        heart.style.fontSize = '20px';
+        heart.style.pointerEvents = 'none';
+        heart.style.zIndex = '1000';
+        heart.style.left = Math.random() * window.innerWidth + 'px';
+        heart.style.top = window.innerHeight + 'px';
+        heart.style.animation = 'floatUp 3s ease-out forwards';
+
+        document.body.appendChild(heart);
+
+        setTimeout(() => {
+            heart.remove();
+        }, 3000);
+    }
+
+    // Add CSS for floating hearts animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
             }
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.style.background = 'linear-gradient(135deg, #ff6b6b, #feca57)';
-            }, 3000);
-        }
-
-        function createFloatingHeart() {
-            const heart = document.createElement('div');
-            heart.innerHTML = '❤️💙';
-            heart.style.position = 'fixed';
-            heart.style.fontSize = '20px';
-            heart.style.pointerEvents = 'none';
-            heart.style.zIndex = '1000';
-            heart.style.left = Math.random() * window.innerWidth + 'px';
-            heart.style.top = window.innerHeight + 'px';
-            heart.style.animation = 'floatUp 3s ease-out forwards';
-            
-            document.body.appendChild(heart);
-            
-            setTimeout(() => {
-                heart.remove();
-            }, 3000);
-        }
-
-        // Add CSS for floating hearts animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes floatUp {
-                0% {
-                    transform: translateY(0) rotate(0deg);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(-100vh) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize
-        updateDateTime();
-        setInterval(updateDateTime, 60000); // Update every minute
-
-        // Try to load the actual photo
-        const img = document.getElementById('couplePhoto');
-        const actualPhotoSrc = 'data:image/jpeg;base64,' + '{{ PHOTO_BASE64_HERE }}';
-        
-        // You'll need to replace {{ PHOTO_BASE64_HERE }} with the actual base64 of your photo
-        // For now, it will show a placeholder
-
-        updateDayCounter();
-
-        function updateDayCounter() {
-            const startDate = new Date("2025-04-14");
-            const today = new Date();
-            const diffTime = today - startDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            const counter = document.getElementById("dayCounter");
-            if (counter) {
-                counter.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️`;
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
             }
         }
-    </script>
+    `;
+    document.head.appendChild(style);
+
+    // Initialize
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Update every minute
+
+    // Try to load the actual photo
+    const img = document.getElementById('couplePhoto');
+    const actualPhotoSrc = 'data:image/jpeg;base64,' + '{{ PHOTO_BASE64_HERE }}';
+
+    // You'll need to replace {{ PHOTO_BASE64_HERE }} with the actual base64 of your photo
+    // For now, it will show a placeholder
+
+    updateDayCounter();
+
+    function updateDayCounter() {
+        const startDate = new Date("2025-04-14");
+        const today = new Date();
+        const diffTime = today - startDate;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const counter = document.getElementById("dayCounter");
+        if (counter) {
+            counter.textContent = `Cela fait ${diffDays} jour${diffDays > 1 ? 's' : ''} qu'on est ensemble ❤️`;
+        }
+    }
+</script>
+</html>
 </body>
 </html>

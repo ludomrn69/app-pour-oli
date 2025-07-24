@@ -35,6 +35,15 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
     <style>
+        /* Sliding sidebar animation for mobile menu */
+        #navbarNav {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        #navbarNav.show {
+            max-height: 500px;
+        }
         /* Toggle souvenirs/messages - curved colorful design */
         #toggleContainer {
           margin-top: 40px !important;
@@ -81,131 +90,145 @@
             padding: 20px;
         }
 
+        /* --- Navbar Styles (Souvenirs Menu Matching) --- */
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 10px 20px;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: rgba(255, 255, 255, 0.97);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(0,0,0,0.08);
+          z-index: 1000;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 24px;
+        }
+
+        .navbar-brand-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          justify-content: space-between;
         }
 
         .navbar-brand {
-            font-size: 18px;
-            font-weight: 700;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+          font-size: 20px;
+          font-weight: 800;
+          background: linear-gradient(90deg, #ff6b6b 10%, #feca57 40%, #1dd1a1 70%, #48dbfb 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        #toggleMenu {
+          display: none;
+          background: none;
+          border: none;
+          font-size: 26px;
+          padding: 4px 12px;
+          cursor: pointer;
+          color: #ff6b6b;
+          border-radius: 8px;
+          transition: background 0.2s;
+        }
+        #toggleMenu:active,
+        #toggleMenu:focus {
+          background: rgba(255, 107, 107, 0.12);
+          outline: none;
         }
 
         .navbar-nav {
-            display: flex;
-            gap: 20px;
-            list-style: none;
-            margin-left: auto;
-            /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
-        }
-        @media (max-width: 480px) {
-            .navbar {
-                padding: 8px 15px;
-            }
-            
-            .navbar-brand {
-                font-size: 16px;
-            }
-            
-            .navbar-nav {
-                gap: 10px;
-                /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
-                justify-content: flex-end;
-            }
-            
-            .nav-link {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-            
-            #toggleContainer {
-                margin-top: 100px;
-            }
-        }
-        /* --- Amélioration navigation mobile --- */
-        @media (max-width: 768px) {
-          .navbar-nav {
-            overflow-x: auto;
-            white-space: nowrap;
-            flex-wrap: nowrap;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-          }
-
-          .navbar-nav::-webkit-scrollbar {
-            display: none;
-          }
-
-          .nav-link {
-            flex: 0 0 auto;
-            font-size: 13px;
-            padding: 8px 12px;
-          }
-
-          .navbar-brand {
-            font-size: 14px;
-            max-width: 60%;
-            word-break: break-word;
-            line-height: 1.2;
-          }
-
-          .navbar {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-        }
-        @media (max-width: 500px) {
-          #toggleContainer {
-            margin-top: 120px;
-          }
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          list-style: none;
+          align-items: center;
+          margin: 0;
         }
 
-        /* Réduit la marge supérieure du toggle souvenirs/messages */
-        #toggleContainer {
-          margin-top: 40px !important;
-        }
-
-        /* Réduit l’espace entre le toggle et les formulaires */
-        #toggleContainer + .main-container {
-          margin-top: 0px;
+        .navbar-nav li {
+          list-style: none;
         }
 
         .nav-link {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            font-size: 14px;
+          text-decoration: none;
+          color: #2c3e50;
+          font-weight: 500;
+          padding: 8px 18px;
+          border-radius: 20px;
+          transition: all 0.25s cubic-bezier(.4,0,.2,1);
+          font-size: 15px;
+          display: inline-block;
         }
-
         .nav-link:hover {
-            background: rgba(255, 107, 107, 0.1);
-            color: #ff6b6b;
-            transform: translateY(-1px);
+          background: rgba(255, 107, 107, 0.12);
+          color: #ff6b6b;
+          transform: translateY(-1px);
+        }
+        .nav-link.active {
+          background: linear-gradient(135deg, #ff6b6b, #feca57);
+          color: #fff;
+          box-shadow: 0 3px 10px rgba(255, 107, 107, 0.15);
         }
 
-         .nav-link.active {
+        @media (max-width: 800px) {
+          .navbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 8px 10px;
+          }
+          .navbar-brand {
+            font-size: 17px;
+          }
+          #toggleMenu {
+            display: block;
+          }
+          .navbar-nav {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+          }
+
+          .navbar-nav.show {
+            max-height: 500px;
+          }
+
+          .navbar-nav li {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+          }
+          .nav-link {
+            width: 100%;
+            display: block;
+          }
+          .nav-link.active {
             background: linear-gradient(135deg, #ff6b6b, #feca57);
             color: white;
-            box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+            border-radius: 40px;
+            box-shadow: 0 4px 14px rgba(255, 107, 107, 0.25);
+            width: 100%;
+            padding: 12px 24px;
+            text-align: left;
+            margin: 4px 0;
+          }
+          .nav-link:hover {
+            width: 100%;
+            padding: 12px 24px;
+            border-radius: 40px;
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff6b6b;
+          }
         }
 
         .main-container {
@@ -410,19 +433,22 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">App pour Oli ❤️</div>
-        <ul class="navbar-nav" style="margin-left: auto;">
-            <li><a href="index.html" class="nav-link">Accueil</a></li>
-            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
-            <li><a href="messages.html" class="nav-link">Messages</a></li>
-            <li><a href="voyages.html" class="nav-link">Voyages</a></li>
-            <li><a href="admin.html" class="nav-link active">Admin</a></li>
-            <li><a href="#" class="nav-link" onclick="logout()">Déconnexion</a></li>
-        </ul>
+      <div class="navbar-brand-wrapper">
+        <div class="navbar-brand">Oli & Ludo</div>
+        <button id="toggleMenu">☰</button>
+      </div>
+      <ul class="navbar-nav" id="navbarNav">
+        <li><a href="index.html" class="nav-link">Accueil</a></li>
+        <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+        <li><a href="messages.html" class="nav-link">Messages</a></li>
+        <li><a href="voyages.html" class="nav-link">Voyages</a></li>
+        <li><a href="admin.html" class="nav-link active">Admin</a></li>
+        <li><a href="#" class="nav-link" onclick="logout()">Déconnexion</a></li>
+      </ul>
     </nav>
 
     <!-- Toggle souvenirs/messages -->
-    <div id="toggleContainer" style="display: none; margin-top: 40px; text-align: center;">
+    <div id="toggleContainer" style="margin-top: 40px; text-align: center;">
         <div>
             <button id="showMemoriesBtn" class="toggle-btn">Souvenirs</button>
             <button id="showMessagesBtn" class="toggle-btn">Messages</button>
@@ -1003,7 +1029,15 @@
         memoriesBtn.classList.add("active");
         messagesBtn.classList.remove("active");
         memoriesBtn.click();
+
+        
     </script>
+  <script>
+    document.getElementById("toggleMenu").addEventListener("click", () => {
+      const nav = document.getElementById("navbarNav");
+      nav.classList.toggle("show");
+    });
+  </script>
 </body>
     <div id="navbarGreeting" style="text-align: center; color: white; font-weight: 500; font-size: 14px; margin-top: 50px;"></div>
 </html>

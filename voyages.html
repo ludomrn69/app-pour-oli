@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nos Voyages - Oli & Ludo</title>
+    <title>Voyages - Oli & Ludo</title>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com;
@@ -46,56 +46,117 @@
         }
 
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 10px 20px;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: rgba(255, 255, 255, 0.97);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          z-index: 1000;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 24px;
+        }
+
+        .navbar-brand-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
 
         .navbar-brand {
-            font-size: 18px;
-            font-weight: 700;
+          font-size: 18px;
+          font-weight: 700;
+          background: linear-gradient(to right, #ff6b6b, #feca57, #48dbfb);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        #toggleMenu {
+          display: none;
+          background: none;
+          border: none;
+          font-size: 24px;
+          padding: 4px 10px;
+          cursor: pointer;
+          color: #ff6b6b;
+          border-radius: 8px;
+          transition: background 0.2s;
+        }
+
+        #toggleMenu:active,
+        #toggleMenu:focus {
+          background: rgba(255, 107, 107, 0.1);
+          outline: none;
         }
 
         .navbar-nav {
-            display: flex;
-            gap: 20px;
-            list-style: none;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          list-style: none;
+          align-items: center;
+          margin: 0;
+          padding: 0;
         }
 
         .nav-link {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            font-size: 14px;
+          text-decoration: none;
+          color: #2c3e50;
+          font-weight: 500;
+          padding: 8px 16px;
+          border-radius: 20px;
+          transition: all 0.3s ease;
+          font-size: 14px;
+          display: inline-block;
         }
 
         .nav-link:hover {
-            background: rgba(255, 107, 107, 0.1);
-            color: #ff6b6b;
-            transform: translateY(-1px);
+          background: rgba(255, 107, 107, 0.1);
+          color: #ff6b6b;
+          transform: translateY(-1px);
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            color: white;
-            box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+          background: linear-gradient(135deg, #ff6b6b, #feca57);
+          color: white;
+          box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        @media (max-width: 800px) {
+          .navbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 8px 10px;
+          }
+          .navbar-brand-wrapper {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .navbar-nav {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            display: none;
+          }
+          .navbar-nav li {
+            width: 100%;
+          }
+          .nav-link {
+            width: 100%;
+            text-align: left;
+            font-size: 15px;
+            padding: 10px 18px;
+          }
+          #toggleMenu {
+            display: block;
+          }
         }
 
         .main-container {
@@ -432,53 +493,17 @@
             }
         }
 
-        /* Responsive Navbar Hamburger Toggle */
-        .menu-toggle {
-          display: none;
-        }
-
-        .menu-icon {
-          display: none;
-          font-size: 24px;
-          cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-          .navbar {
-            flex-wrap: wrap;
-          }
-
-          .menu-icon {
-            display: block;
-            margin-right: auto;
-          }
-
-          .navbar-nav {
-            display: none;
-            flex-direction: column;
-            width: 100%;
-            margin-top: 10px;
-          }
-
-          .menu-toggle:checked ~ .navbar-nav {
-            display: flex;
-          }
-
-          .navbar-nav li {
-            margin: 5px 0;
-          }
-        }
+        /* Remove old menu-toggle and menu-icon styles, now handled by #toggleMenu and .navbar-brand-wrapper */
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-      <input type="checkbox" id="menu-toggle" class="menu-toggle">
-      <label for="menu-toggle" class="menu-icon">&#9776;</label>
-      <div class="navbar-brand">
-        <span style="color: #ff6b6b;">Oli</span> <span style="color: #feca57;">&</span> <span style="color: #48dbfb;">Ludo</span>
+      <div class="navbar-brand-wrapper">
+        <div class="navbar-brand">Oli & Ludo</div>
+        <button id="toggleMenu">☰</button>
       </div>
-      <ul class="navbar-nav">
+      <ul class="navbar-nav" id="navbarNav">
         <li><a href="index.html" class="nav-link">Accueil</a></li>
         <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
         <li><a href="messages.html" class="nav-link">Messages</a></li>
@@ -1290,6 +1315,29 @@
             // Initial update
             updateToggle();
         });
+    </script>
+    <script>
+    // Responsive navigation toggle
+    document.getElementById("toggleMenu").addEventListener("click", () => {
+      const nav = document.getElementById("navbarNav");
+      if (nav.style.display === "flex") {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "column";
+      }
+    });
+    function handleResizeNav() {
+      const nav = document.getElementById("navbarNav");
+      if (window.innerWidth <= 800) {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "row";
+      }
+    }
+    window.addEventListener("resize", handleResizeNav);
+    window.addEventListener("DOMContentLoaded", handleResizeNav);
     </script>
 </body>
 </html>
