@@ -314,6 +314,55 @@
                 font-size: 20px;
             }
         }
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px 0 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar select {
+            padding: 10px 40px 10px 16px;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23777' stroke-width='2'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+        }
+
+        .filter-bar select:hover {
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.12);
+        }
+
+        .filter-bar select:focus {
+            outline: none;
+            border-color: #feca57;
+            box-shadow: 0 0 0 3px rgba(254, 202, 87, 0.3);
+        }
+
+        .memory-location {
+            margin-top: 10px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            padding: 6px 12px;
+            border-radius: 20px;
+            float: right;
+        }
     </style>
 </head>
 <body>
@@ -340,7 +389,29 @@
             <div class="app-title">Nos plus beaux souvenirs 💫</div>
         </div>
         
-        <div class="content">
+        <div class="filter-bar">
+            <select id="locationFilter">
+                <option value="">Tous les lieux</option>
+            </select>
+            <select id="monthFilter">
+                <option value="">Tous les mois</option>
+                <option value="0">Janvier</option>
+                <option value="1">Février</option>
+                <option value="2">Mars</option>
+                <option value="3">Avril</option>
+                <option value="4">Mai</option>
+                <option value="5">Juin</option>
+                <option value="6">Juillet</option>
+                <option value="7">Août</option>
+                <option value="8">Septembre</option>
+                <option value="9">Octobre</option>
+                <option value="10">Novembre</option>
+                <option value="11">Décembre</option>
+            </select>
+            <select id="yearFilter">
+                <option value="">Toutes les années</option>
+            </select>
+        </div>
             <div id="memoriesContainer" class="memories-grid">
                 <div class="loading">
                     Chargement des souvenirs... ✨
@@ -404,8 +475,56 @@
                 .map(doc => ({ id: doc.id, data: doc.data() }))
                 .sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
 
+            // Générer dynamiquement les années
+            const yearSet = new Set();
             sortedDocs.forEach(({ data }) => {
-                const formattedDate = new Date(data.date).toLocaleDateString('fr-FR', {
+                const year = new Date(data.date).getFullYear();
+                yearSet.add(year);
+            });
+            const yearFilter = document.getElementById('yearFilter');
+            // Nettoyer les options existantes sauf la première
+            while (yearFilter.options.length > 1) {
+                yearFilter.remove(1);
+            }
+            Array.from(yearSet).sort((a, b) => b - a).forEach(year => {
+                const opt = document.createElement('option');
+                opt.value = year;
+                opt.textContent = year;
+                yearFilter.appendChild(opt);
+            });
+            const monthFilter = document.getElementById('monthFilter');
+
+            // Générer dynamiquement les lieux
+            const locationSet = new Set();
+            sortedDocs.forEach(({ data }) => {
+                if (data.location) locationSet.add(data.location);
+            });
+            const locationFilter = document.getElementById('locationFilter');
+            while (locationFilter.options.length > 1) {
+                locationFilter.remove(1);
+            }
+            Array.from(locationSet).sort().forEach(loc => {
+                const opt = document.createElement('option');
+                opt.value = loc;
+                opt.textContent = loc;
+                locationFilter.appendChild(opt);
+            });
+
+            sortedDocs.forEach(({ data }) => {
+                const dateObj = new Date(data.date);
+                const selectedYear = yearFilter.value;
+                const selectedMonth = monthFilter.value;
+                const selectedLocation = locationFilter.value;
+
+                if ((selectedYear && dateObj.getFullYear().toString() !== selectedYear) ||
+                    (selectedMonth !== '' && dateObj.getMonth().toString() !== selectedMonth)) {
+                    return;
+                }
+                if (selectedLocation && data.location !== selectedLocation) {
+                    return;
+                }
+
+                const formattedDate = dateObj.toLocaleDateString('fr-FR', {
                     day: '2-digit',
                     month: 'long',
                     year: 'numeric'
@@ -423,6 +542,7 @@
                         <p class="memory-text">${data.description}</p>
                         ${data.photoURL ? `<img src="${data.photoURL}" alt="${data.title}" class="memory-photo">` : ''}
                     </div>
+                    ${data.location ? `<div class="memory-location">📍 ${data.location}</div>` : ''}
                 `;
 
                 container.appendChild(memoryCard);
@@ -491,6 +611,11 @@
             await signOut(auth);
             window.location.reload();
         });
+
+        // Relancer le chargement si le filtre change
+        document.getElementById('yearFilter').addEventListener('change', loadMemories);
+        document.getElementById('monthFilter').addEventListener('change', loadMemories);
+        document.getElementById('locationFilter').addEventListener('change', loadMemories);
     </script>
 </body>
 </html>

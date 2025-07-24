@@ -110,6 +110,16 @@
           }
         }
 
+        /* Réduit la marge supérieure du toggle souvenirs/messages */
+        #toggleContainer {
+          margin-top: 40px !important;
+        }
+
+        /* Réduit l’espace entre le toggle et les formulaires */
+        #toggleContainer + .main-container {
+          margin-top: 0px;
+        }
+
         .nav-link {
             text-decoration: none;
             color: #2c3e50;
@@ -133,7 +143,7 @@
         }
 
         .main-container {
-            margin-top: 80px;
+            margin-top: 20px;
             max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
@@ -298,6 +308,37 @@
                 padding: 20px;
             }
         }
+
+        /* Style personnalisé pour les menus déroulants .form-select */
+        .form-select {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          background-color: white;
+          background-image: url("data:image/svg+xml,%3Csvg fill='none' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23666' stroke-width='2'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 1rem center;
+          background-size: 16px;
+          padding-right: 3rem;
+          border: 2px solid rgba(255, 107, 107, 0.2);
+          border-radius: 12px;
+          height: 48px;
+          line-height: 1.2;
+          font-size: 15px;
+          font-weight: 500;
+          transition: all 0.3s ease;
+        }
+
+        .form-select:hover {
+          border-color: #ff6b6b;
+          box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+        }
+
+        .form-select:focus {
+          outline: none;
+          border-color: #ff6b6b;
+          box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -315,7 +356,7 @@
     </nav>
 
     <!-- Toggle souvenirs/messages -->
-    <div id="toggleContainer" style="display: none; margin-top: 80px; text-align: center;">
+    <div id="toggleContainer" style="display: none; margin-top: 40px; text-align: center;">
         <div style="display: inline-flex; background: #f1f1f1; border-radius: 30px; padding: 5px; box-shadow: inset 0 0 5px rgba(0,0,0,0.1);">
             <button id="showMemoriesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: #ff6b6b; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Souvenirs</button>
             <button id="showMessagesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: transparent; color: #333; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Messages</button>
@@ -346,7 +387,7 @@
     <!-- Admin Interface (hidden until login) -->
     <div id="adminInterface" class="main-container" style="display: none;">
         <!-- Add Memory Section -->
-        <div class="admin-section">
+        <div class="admin-section" style="height: auto; min-height: 600px;">
             <div class="section-header">
                 <h2>Ajouter un Souvenir 💫</h2>
             </div>
@@ -356,17 +397,20 @@
                         <label class="form-label">Titre du souvenir</label>
                         <input type="text" id="memoryTitle" class="form-input" required>
                     </div>
-                    
+                    <div class="form-group">
+                        <label class="form-label">Lieu associé</label>
+                        <select id="memoryLocation" class="form-select">
+                            <option value="">Aucun lieu</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Date</label>
                         <input type="date" id="memoryDate" class="form-input" required>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">Description</label>
                         <textarea id="memoryDescription" class="form-textarea" placeholder="Raconte ce beau souvenir..." required></textarea>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">Photo (optionnelle)</label>
                         <div class="file-input-container">
@@ -377,7 +421,6 @@
                         </div>
                         <div id="memoryPreview" class="preview-container"></div>
                     </div>
-                    
                     <button type="submit" class="submit-btn" id="memorySubmit">
                         Ajouter le souvenir ✨
                     </button>
@@ -401,12 +444,10 @@
                         <label class="form-label">Date de la conversation</label>
                         <input type="date" id="messageDate" class="form-input" required>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">Description</label>
                         <textarea id="messageDescription" class="form-textarea" placeholder="Contexte de cette conversation..." required></textarea>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label">Screenshot de la conversation</label>
                         <div class="file-input-container">
@@ -417,7 +458,6 @@
                         </div>
                         <div id="messagePreview" class="preview-container"></div>
                     </div>
-                    
                     <button type="submit" class="submit-btn" id="messageSubmit">
                         Ajouter la conversation 💕
                     </button>
@@ -425,7 +465,7 @@
                 <div id="messageMessage"></div>
             </div>
         </div>
-        <div class="admin-section" style="display: flex; flex-direction: column; height: 100%; max-height: 600px; overflow-y: auto;">
+        <div class="admin-section" style="height: auto; min-height: 600px; display: flex; flex-direction: column; overflow-y: auto;">
             <div class="section-header">
                 <h2>Modifier ou supprimer un souvenir ✏️🗑</h2>
             </div>
@@ -480,6 +520,21 @@
         const memoryForm = document.getElementById('memoryForm');
         const messageForm = document.getElementById('messageForm');
 
+        // Fonction pour charger les lieux depuis Firestore et remplir les dropdowns
+        async function populateLocationDropdowns() {
+            const placesSnap = await getDocs(collection(db, "visited-places"));
+            const locations = placesSnap.docs.map(doc => doc.data().name);
+
+            const memorySelect = document.getElementById("memoryLocation");
+
+            locations.forEach(name => {
+                const option1 = document.createElement("option");
+                option1.value = name;
+                option1.textContent = name;
+                memorySelect.appendChild(option1);
+            });
+        }
+
         // Check auth state
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -494,6 +549,8 @@
                 greeting.style.fontWeight = '500';
                 greeting.style.fontSize = '14px';
                 greeting.style.color = 'white';
+                // Charger les lieux pour les dropdowns
+                populateLocationDropdowns();
             } else {
                 loginContainer.style.display = 'block';
                 adminInterface.style.display = 'none';
@@ -578,6 +635,7 @@
                 const date = document.getElementById('memoryDate').value;
                 const description = document.getElementById('memoryDescription').value;
                 const photoFile = document.getElementById('memoryPhoto').files[0];
+                const location = document.getElementById('memoryLocation').value;
 
                 // Edition mode
                 if (editingItem && editingType === 'memories') {
@@ -598,7 +656,8 @@
                         title,
                         date,
                         description,
-                        photoURL: newPhotoURL
+                        photoURL: newPhotoURL,
+                        location
                     });
 
                     messageDiv.innerHTML = '<div class="success-message">Souvenir modifié avec succès ! ✨</div>';
@@ -624,6 +683,7 @@
                     date,
                     description,
                     photoURL,
+                    location,
                     createdAt: serverTimestamp(),
                     createdBy: auth.currentUser.email
                 });
@@ -740,13 +800,18 @@
                     </div>
                     <p style="font-size: 14px; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 10px;">${data.description}</p>
                     ${data.photoURL ? `<img src="${data.photoURL}" style="max-height:120px; margin:10px 0; display: block;">` : ''}
-                    <div style="display: flex; justify-content: flex-start; gap: 10px; margin-top: 10px;">
-                        <button class="edit-button" style="background:#ffa500;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
-                            ✏️ Modifier
-                        </button>
-                        <button class="delete-button" style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
-                           🗑️ Supprimer
-                        </button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div style="color: white; background: linear-gradient(135deg, #a18cd1, #fbc2eb); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                            ${data.location ? `📍 ${data.location}` : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="edit-button" style="background:#ffa500;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+                                ✏️ Modifier
+                            </button>
+                            <button class="delete-button" style="background:red;color:white;border:none;padding:8px 12px;border-radius:5px;cursor:pointer;">
+                               🗑️ Supprimer
+                            </button>
+                        </div>
                     </div>
                 `;
 
@@ -778,6 +843,7 @@
                         document.getElementById('memoryTitle').value = data.title || '';
                         document.getElementById('memoryDate').value = data.date || '';
                         document.getElementById('memoryDescription').value = data.description || '';
+                        document.getElementById('memoryLocation').value = data.location || '';
                         document.getElementById('memorySubmit').textContent = 'Modifier le souvenir ✨';
                         document.getElementById('cancelMemoryEdit').style.display = 'block';
                         document.getElementById('memoryPreview').innerHTML = '';
