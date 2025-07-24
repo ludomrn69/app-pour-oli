@@ -566,9 +566,24 @@
                         </div>
                     </div>
                     <div class="conversation-text">${data.description}</div>
-                    ${(data.photoURLs || []).map(url => `
-                        <img src="${url}" class="conversation-image" alt="${data.description}">
-                    `).join('')}
+                    ${(() => {
+                        let images = [];
+                        if (Array.isArray(data.photoURLs)) {
+                            images = data.photoURLs;
+                        } else if (Array.isArray(data.photoURL)) {
+                            images = data.photoURL;
+                        } else if (typeof data.photoURL === 'string') {
+                            try {
+                                const parsed = JSON.parse(data.photoURL);
+                                images = Array.isArray(parsed) ? parsed : [data.photoURL];
+                            } catch {
+                                images = [data.photoURL];
+                            }
+                        }
+                        return images.map(url => `
+                            <img src="${url}" class="conversation-image" alt="${data.description}">
+                        `).join('');
+                    })()}
                 `;
 
                 container.appendChild(block);
@@ -646,6 +661,42 @@
         // Filter bar listeners
         document.getElementById('yearFilter').addEventListener('change', loadConversations);
         document.getElementById('monthFilter').addEventListener('change', loadConversations);
+    </script>
+    <script>
+      // Script pour affichage en grand des images au clic
+      const modal = document.createElement('div');
+      modal.id = 'imageModal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      `;
+
+      const modalImg = document.createElement('img');
+      modalImg.style.cssText = `
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      `;
+
+      modal.appendChild(modalImg);
+      document.body.appendChild(modal);
+
+      modal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+
+      document.body.addEventListener('click', function(e) {
+        if (e.target.tagName === 'IMG' && e.target.classList.contains('conversation-image')) {
+          modalImg.src = e.target.src;
+          modal.style.display = 'flex';
+        }
+      });
     </script>
     <script>
       // Responsive navigation toggle

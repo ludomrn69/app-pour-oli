@@ -1044,6 +1044,8 @@
                             departmentContainer.appendChild(departmentHeader);
 
                             if (!collapsedDepartments[`${region}-${department}`]) {
+                                // Trier les villes par ordre alphabétique avant de les afficher
+                                grouped[country][region][department].sort((a, b) => a.name.localeCompare(b.name));
                                 grouped[country][region][department].forEach(city => {
                                     const placeDiv = document.createElement('div');
                                     placeDiv.className = `place-item ${city.type}`;
@@ -1148,13 +1150,32 @@
                     const popupContent = matching.map(mem => {
                         const dateObj = new Date(mem.date);
                         const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                        let images = [];
+                        if (Array.isArray(mem.photoURLs)) {
+                            images = mem.photoURLs;
+                        } else if (Array.isArray(mem.photoURL)) {
+                            images = mem.photoURL;
+                        } else if (typeof mem.photoURL === 'string') {
+                            try {
+                                const parsed = JSON.parse(mem.photoURL);
+                                images = Array.isArray(parsed) ? parsed : [mem.photoURL];
+                            } catch {
+                                images = [mem.photoURL];
+                            }
+                        }
+
+                        const imagesHtml = images.map(url => `
+                            <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                        `).join('');
+
                         return `
                             <div style="margin-bottom: 14px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <strong>${mem.title}</strong>
                                     <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
                                 </div>
-                                <img src="${mem.photoURL}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                ${imagesHtml}
                                 <hr style="margin: 8px 0;">
                             </div>
                         `;
@@ -1275,7 +1296,24 @@
                                             <strong>— ${mem.title}</strong>
                                             <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
                                         </div>
-                                        <img src="${mem.photoURL}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                        ${
+                                            (() => {
+                                                let images = [];
+                                                if (Array.isArray(mem.photoURL)) {
+                                                    images = mem.photoURL;
+                                                } else if (typeof mem.photoURL === 'string') {
+                                                    try {
+                                                        const parsed = JSON.parse(mem.photoURL);
+                                                        images = Array.isArray(parsed) ? parsed : [mem.photoURL];
+                                                    } catch {
+                                                        images = [mem.photoURL];
+                                                    }
+                                                }
+                                                return images.map(url => `
+                                                    <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                                `).join('');
+                                            })()
+                                        }
                                         <hr style="margin: 8px 0;">
                                     </div>
                                 `;
@@ -1325,28 +1363,65 @@
             updateToggle();
         });
     </script>
-    <script>
-    // Responsive navigation toggle
-    document.getElementById("toggleMenu").addEventListener("click", () => {
-      const nav = document.getElementById("navbarNav");
-      if (nav.style.display === "flex") {
-        nav.style.display = "none";
-      } else {
-        nav.style.display = "flex";
-        nav.style.flexDirection = "column";
-      }
-    });
-    function handleResizeNav() {
-      const nav = document.getElementById("navbarNav");
-      if (window.innerWidth <= 800) {
-        nav.style.display = "none";
-      } else {
-        nav.style.display = "flex";
-        nav.style.flexDirection = "row";
-      }
+</script>
+<script>
+// Responsive navigation toggle
+document.getElementById("toggleMenu").addEventListener("click", () => {
+  const nav = document.getElementById("navbarNav");
+  if (nav.style.display === "flex") {
+    nav.style.display = "none";
+  } else {
+    nav.style.display = "flex";
+    nav.style.flexDirection = "column";
+  }
+});
+function handleResizeNav() {
+  const nav = document.getElementById("navbarNav");
+  if (window.innerWidth <= 800) {
+    nav.style.display = "none";
+  } else {
+    nav.style.display = "flex";
+    nav.style.flexDirection = "row";
+  }
+}
+window.addEventListener("resize", handleResizeNav);
+window.addEventListener("DOMContentLoaded", handleResizeNav);
+</script>
+<script>
+  // Création d'un modal pour afficher l'image en grand
+  const modal = document.createElement('div');
+  modal.id = 'imageModal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  `;
+
+  const modalImg = document.createElement('img');
+  modalImg.style.cssText = `
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  `;
+
+  modal.appendChild(modalImg);
+  document.body.appendChild(modal);
+
+  modal.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  document.body.addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG' && e.target.src.startsWith('https://firebasestorage.googleapis.com')) {
+      modalImg.src = e.target.src;
+      modal.style.display = 'flex';
     }
-    window.addEventListener("resize", handleResizeNav);
-    window.addEventListener("DOMContentLoaded", handleResizeNav);
-    </script>
+  });
+</script>
 </body>
 </html>
