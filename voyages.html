@@ -1124,69 +1124,75 @@
         };
 
         // Fonction focusOnPlace pour centrer et ouvrir le popup ou surligner le pays
-        window.focusOnPlace = function (placeId) {
-            const place = visitedPlaces.find(p => p.id === placeId);
-            if (!place) return;
+window.focusOnPlace = function (placeId) {
+    // Scroll to map on mobile when a place is selected
+    const mapContainer = document.querySelector('.map-container');
+    if (mapContainer && window.innerWidth <= 768) {
+      mapContainer.scrollIntoView({ behavior: 'smooth' });
+    }
 
-            const zoom = place.type === 'city' ? 10 : 4;
-            map.setView([place.lat, place.lon], zoom);
+    const place = visitedPlaces.find(p => p.id === placeId);
+    if (!place) return;
 
-            // Ouvrir le popup s'il s'agit d'une ville
-            if (place.type === 'city') {
-                const marker = cityMarkers.find(m => {
-                    const coords = m.getBounds ? m.getBounds().getCenter() : m.getLatLng();
-                    return coords.lat === place.lat && coords.lng === place.lon;
-                });
-                if (marker && marker.openPopup) {
-                    marker.openPopup();
+    const zoom = place.type === 'city' ? 10 : 4;
+    map.flyTo([place.lat, place.lon], zoom, { animate: true, duration: 1 });
+
+    // Ouvrir le popup s'il s'agit d'une ville
+    if (place.type === 'city') {
+        const marker = cityMarkers.find(m => {
+            const coords = m.getBounds ? m.getBounds().getCenter() : m.getLatLng();
+            return coords.lat === place.lat && coords.lng === place.lon;
+        });
+        if (marker && marker.openPopup) {
+            marker.openPopup();
+        }
+    }
+
+    // Afficher les souvenirs associés à la ville (filtrer par location)
+    if (place.type === 'city') {
+        const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+        const matching = memories.filter(m => m.location?.toLowerCase() === place.name.toLowerCase());
+        if (matching.length > 0) {
+            const popupContent = matching.map(mem => {
+                const dateObj = new Date(mem.date);
+                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                let images = [];
+                if (Array.isArray(mem.photoURLs)) {
+                    images = mem.photoURLs;
+                } else if (Array.isArray(mem.photoURL)) {
+                    images = mem.photoURL;
+                } else if (typeof mem.photoURL === 'string') {
+                    try {
+                        const parsed = JSON.parse(mem.photoURL);
+                        images = Array.isArray(parsed) ? parsed : [mem.photoURL];
+                    } catch {
+                        images = [mem.photoURL];
+                    }
                 }
-            }
 
-            // Afficher les souvenirs associés à la ville (filtrer par location)
-            if (place.type === 'city') {
-                const memories = JSON.parse(localStorage.getItem("memories") || "[]");
-                const matching = memories.filter(m => m.location?.toLowerCase() === place.name.toLowerCase());
-                if (matching.length > 0) {
-                    const popupContent = matching.map(mem => {
-                        const dateObj = new Date(mem.date);
-                        const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const imagesHtml = images.map(url => `
+                    <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                `).join('');
 
-                        let images = [];
-                        if (Array.isArray(mem.photoURLs)) {
-                            images = mem.photoURLs;
-                        } else if (Array.isArray(mem.photoURL)) {
-                            images = mem.photoURL;
-                        } else if (typeof mem.photoURL === 'string') {
-                            try {
-                                const parsed = JSON.parse(mem.photoURL);
-                                images = Array.isArray(parsed) ? parsed : [mem.photoURL];
-                            } catch {
-                                images = [mem.photoURL];
-                            }
-                        }
-
-                        const imagesHtml = images.map(url => `
-                            <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
-                        `).join('');
-
-                        return `
-                            <div style="margin-bottom: 14px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <strong>${mem.title}</strong>
-                                    <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
-                                </div>
-                                ${imagesHtml}
-                                <hr style="margin: 8px 0;">
-                            </div>
-                        `;
-                    }).join('');
-                    L.popup({ maxWidth: 300 })
-                        .setLatLng([place.lat, place.lon])
-                        .setContent(`<div style="max-height: 300px; overflow-y: auto;"><h4>📸 Souvenirs à ${place.name}</h4><hr style="margin: 10px 0;">${popupContent}</div>`)
-                        .openOn(map);
-                }
-            }
-        };
+                return `
+                    <div style="margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${mem.title}</strong>
+                            <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
+                        </div>
+                        ${imagesHtml}
+                        <hr style="margin: 8px 0;">
+                    </div>
+                `;
+            }).join('');
+            L.popup({ maxWidth: 300 })
+                .setLatLng([place.lat, place.lon])
+                .setContent(`<div style="max-height: 300px; overflow-y: auto;"><h4>📸 Souvenirs à ${place.name}</h4><hr style="margin: 10px 0;">${popupContent}</div>`)
+                .openOn(map);
+        }
+    }
+};
 
         // --- Suggestion et autocomplétion pour les lieux ---
         async function fetchSuggestions(query) {
@@ -1290,30 +1296,28 @@
                                     month: '2-digit',
                                     year: 'numeric'
                                 });
+                                // --- Unified image extraction logic for photoURLs ---
+                                let images = [];
+                                if (Array.isArray(mem.photoURLs)) {
+                                    images = mem.photoURLs;
+                                } else if (typeof mem.photoURLs === 'string') {
+                                    try {
+                                        const parsed = JSON.parse(mem.photoURLs);
+                                        images = Array.isArray(parsed) ? parsed : [parsed];
+                                    } catch {
+                                        images = [mem.photoURLs];
+                                    }
+                                }
+                                const imagesHtml = images.map(url => `
+                                    <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                `).join('');
                                 return `
                                     <div style="margin-bottom: 14px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center;">
                                             <strong>— ${mem.title}</strong>
                                             <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
                                         </div>
-                                        ${
-                                            (() => {
-                                                let images = [];
-                                                if (Array.isArray(mem.photoURL)) {
-                                                    images = mem.photoURL;
-                                                } else if (typeof mem.photoURL === 'string') {
-                                                    try {
-                                                        const parsed = JSON.parse(mem.photoURL);
-                                                        images = Array.isArray(parsed) ? parsed : [mem.photoURL];
-                                                    } catch {
-                                                        images = [mem.photoURL];
-                                                    }
-                                                }
-                                                return images.map(url => `
-                                                    <img src="${url}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
-                                                `).join('');
-                                            })()
-                                        }
+                                        ${imagesHtml}
                                         <hr style="margin: 8px 0;">
                                     </div>
                                 `;
