@@ -630,7 +630,7 @@
             while (locationFilter.options.length > 1) {
                 locationFilter.remove(1);
             }
-            Array.from(locationSet).sort().forEach(loc => {
+            Array.from(locationSet).sort((a, b) => a.localeCompare(b)).forEach(loc => {
                 const opt = document.createElement('option');
                 opt.value = loc;
                 opt.textContent = loc;

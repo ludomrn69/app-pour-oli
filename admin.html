@@ -710,7 +710,7 @@
         // Fonction pour charger les lieux depuis Firestore et remplir les dropdowns
         async function populateLocationDropdowns() {
             const placesSnap = await getDocs(collection(db, "visited-places"));
-            const locations = placesSnap.docs.map(doc => doc.data().name);
+            const locations = placesSnap.docs.map(doc => doc.data().name).sort((a, b) => a.localeCompare(b));
 
             const memorySelect = document.getElementById("memoryLocation");
 
@@ -953,6 +953,7 @@
 
                     messageDiv.innerHTML = '<div class="success-message">Souvenir ajouté avec succès ! ✨</div>';
                     resetMemoryForm();
+                    window.location.reload();
                 }
 
             } catch (error) {
@@ -1027,6 +1028,7 @@
 
                     messageDiv.innerHTML = '<div class="success-message">Conversation ajoutée avec succès ! 💕</div>';
                     resetMessageForm();
+                    window.location.reload();
                 }
 
             } catch (error) {
