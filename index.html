@@ -401,42 +401,66 @@
         /* Mobile optimizations */
         @media (max-width: 480px) {
             .navbar {
+                flex-direction: column;
+                align-items: flex-start;
                 padding: 8px 15px;
             }
-            
+
             .navbar-brand {
                 font-size: 16px;
             }
-            
+
             .navbar-nav {
-                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+                gap: 8px;
             }
-            
+
+            .navbar-nav li {
+                width: 100%;
+            }
+
             .nav-link {
+                width: 100%;
+                text-align: left;
                 font-size: 12px;
-                padding: 6px 12px;
+                padding: 10px 14px;
+                border-radius: 12px;
             }
-            
+
             body {
                 padding-top: 60px;
             }
-            
+
             .container {
-                margin: 10px;
+                margin-top: 10px;
+                margin-bottom: 20px;
                 max-width: calc(100vw - 20px);
+                width: 100%;
+                border-radius: 16px;
             }
-            
+
             .content {
                 padding: 20px;
             }
-            
+
             .main-message {
-                font-size: 20px;
+                font-size: 18px;
             }
-            
+
             .photo-container {
-                width: 100px;
-                height: 100px;
+                width: 90px;
+                height: 90px;
+            }
+
+            .date-time {
+                font-size: 13px;
+            }
+
+            .love-message {
+                font-size: 14px;
+                padding: 16px;
             }
         }
     </style>

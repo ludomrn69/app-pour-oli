@@ -35,6 +35,39 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
     <style>
+        /* Toggle souvenirs/messages - curved colorful design */
+        #toggleContainer {
+          margin-top: 40px !important;
+        }
+        #toggleContainer > div {
+            border-radius: 40px;
+            background: linear-gradient(to right, #ffffff, #f2f2f2);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 5px;
+            display: inline-flex;
+            overflow: hidden;
+        }
+
+        #showMemoriesBtn,
+        #showMessagesBtn {
+            flex: 1;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #333;
+        }
+
+        #showMemoriesBtn.active,
+        #showMessagesBtn.active {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border-radius: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
         * {
             margin: 0;
             padding: 0;
@@ -62,7 +95,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            flex-wrap: wrap;
+            /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
         }
 
         .navbar-brand {
@@ -79,6 +112,7 @@
             gap: 20px;
             list-style: none;
             margin-left: auto;
+            /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
         }
         @media (max-width: 480px) {
             .navbar {
@@ -91,7 +125,7 @@
             
             .navbar-nav {
                 gap: 10px;
-                flex-wrap: wrap;
+                /* flex-wrap: wrap; */ /* Supprimé pour éviter conflit avec scroll horizontal mobile */
                 justify-content: flex-end;
             }
             
@@ -104,9 +138,41 @@
                 margin-top: 100px;
             }
         }
+        /* --- Amélioration navigation mobile --- */
+        @media (max-width: 768px) {
+          .navbar-nav {
+            overflow-x: auto;
+            white-space: nowrap;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+
+          .navbar-nav::-webkit-scrollbar {
+            display: none;
+          }
+
+          .nav-link {
+            flex: 0 0 auto;
+            font-size: 13px;
+            padding: 8px 12px;
+          }
+
+          .navbar-brand {
+            font-size: 14px;
+            max-width: 60%;
+            word-break: break-word;
+            line-height: 1.2;
+          }
+
+          .navbar {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
         @media (max-width: 500px) {
           #toggleContainer {
-            margin-top: 220px;
+            margin-top: 120px;
           }
         }
 
@@ -357,9 +423,9 @@
 
     <!-- Toggle souvenirs/messages -->
     <div id="toggleContainer" style="display: none; margin-top: 40px; text-align: center;">
-        <div style="display: inline-flex; background: #f1f1f1; border-radius: 30px; padding: 5px; box-shadow: inset 0 0 5px rgba(0,0,0,0.1);">
-            <button id="showMemoriesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: #ff6b6b; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Souvenirs</button>
-            <button id="showMessagesBtn" style="padding: 10px 30px; border: none; border-radius: 25px; background: transparent; color: #333; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Messages</button>
+        <div>
+            <button id="showMemoriesBtn" class="toggle-btn">Souvenirs</button>
+            <button id="showMessagesBtn" class="toggle-btn">Messages</button>
         </div>
     </div>
 
@@ -476,7 +542,7 @@
 
         <div class="admin-section" style="display: flex; flex-direction: column; height: 100%; max-height: 600px; overflow-y: auto;">
             <div class="section-header">
-                <h2>Modifier ou supprimer une conversation ✏️🗑</h2>
+                <h2>Modifier ou supprimer une conv ✏️🗑</h2>
             </div>
             <div class="section-content" id="deleteMessagesList" style="overflow-y: auto; flex-grow: 1;">
                 Chargement des messages...
@@ -921,23 +987,21 @@
             memorySections.forEach(el => el.style.display = "block");
             messageSections.forEach(el => el.style.display = "none");
 
-            memoriesBtn.style.background = "#ff6b6b";
-            memoriesBtn.style.color = "white";
-            messagesBtn.style.background = "transparent";
-            messagesBtn.style.color = "#333";
+            memoriesBtn.classList.add("active");
+            messagesBtn.classList.remove("active");
         });
 
         messagesBtn.addEventListener("click", () => {
             memorySections.forEach(el => el.style.display = "none");
             messageSections.forEach(el => el.style.display = "block");
 
-            messagesBtn.style.background = "#feca57";
-            messagesBtn.style.color = "white";
-            memoriesBtn.style.background = "transparent";
-            memoriesBtn.style.color = "#333";
+            messagesBtn.classList.add("active");
+            memoriesBtn.classList.remove("active");
         });
 
         // Initial state
+        memoriesBtn.classList.add("active");
+        messagesBtn.classList.remove("active");
         memoriesBtn.click();
     </script>
 </body>
