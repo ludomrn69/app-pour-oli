@@ -6,9 +6,9 @@
     <title>Nos Voyages - Oli & Ludo</title>
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com;
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com;
         style-src 'self' 'unsafe-inline' https://unpkg.com;
-        img-src 'self' data: https://firebasestorage.googleapis.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org;
+        img-src 'self' data: https://firebasestorage.googleapis.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://joko-mobile-app-media.s3.eu-west-1.amazonaws.com;
         connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://nominatim.openstreetmap.org https://raw.githubusercontent.com;
         font-src 'self' data:;
         object-src 'none';
@@ -667,22 +667,27 @@
             // Ajouter les marqueurs pour les villes
             cities.forEach((city, index) => {
                 const color = colors[index % colors.length];
-                if (city.geojson && (city.geojson.type === 'Polygon' || city.geojson.type === 'MultiPolygon')) {
-                    const layer = L.geoJSON(city.geojson, {
+                // Affichage par polygone si geojson existe et est Polygon/MultiPolygon
+                if (
+                    city.geojson &&
+                    (city.geojson.type === 'Polygon' || city.geojson.type === 'MultiPolygon')
+                ) {
+                    const polygonLayer = L.geoJSON(city.geojson, {
                         style: {
                             color: color,
                             fillColor: color,
-                            fillOpacity: 0.3,
+                            fillOpacity: 0.4,
                             weight: 2
                         }
                     }).addTo(map);
-                    layer.bindPopup(`
+
+                    polygonLayer.bindPopup(`
                         <div style="text-align: center;">
                             <strong>🏙️ ${city.name}</strong><br>
                             <small>${city.country}</small>
                         </div>
                     `);
-                    cityMarkers.push(layer);
+                    cityMarkers.push(polygonLayer);
                 } else {
                     const marker = L.circleMarker([city.lat, city.lon], {
                         radius: 8,
