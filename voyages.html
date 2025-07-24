@@ -615,7 +615,7 @@
                     lon: placeData.lon,
                     country: placeData.country,
                     type: isCountry ? 'country' : 'city',
-                    geojson: placeData.geojson || null,
+                    geojson: placeData.geojson ? JSON.stringify(placeData.geojson) : null,
                     addedAt: serverTimestamp(),
                     addedBy: auth.currentUser.email
                 };
@@ -673,11 +673,12 @@
             cities.forEach((city, index) => {
                 const color = colors[index % colors.length];
                 // Affichage par polygone si geojson existe et est Polygon/MultiPolygon
+                const geojson = typeof city.geojson === 'string' ? JSON.parse(city.geojson) : city.geojson;
                 if (
-                    city.geojson &&
-                    (city.geojson.type === 'Polygon' || city.geojson.type === 'MultiPolygon')
+                    geojson &&
+                    (geojson.type === 'Polygon' || geojson.type === 'MultiPolygon')
                 ) {
-                    const polygonLayer = L.geoJSON(city.geojson, {
+                    const polygonLayer = L.geoJSON(geojson, {
                         style: {
                             color: color,
                             fillColor: color,
