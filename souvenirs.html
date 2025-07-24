@@ -24,7 +24,7 @@
     <meta name="theme-color" content="#ff6b6b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="App pour Oli">
+    <meta name="apple-mobile-web-app-title" content="Oli & Ludo">
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
@@ -183,12 +183,12 @@
 
         .memory-card {
             background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
             border-left: 4px solid #ff6b6b;
             transition: all 0.3s ease;
-            animation: slideIn 0.5s ease-out;
+            animation: fadeInUp 0.6s ease both;
         }
 
         .memory-card:hover {
@@ -196,14 +196,14 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
-        @keyframes slideIn {
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateX(-20px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateY(0);
             }
         }
 
@@ -241,8 +241,9 @@
             max-height: 300px;
             border-radius: 10px;
             object-fit: contain;
-            border: 2px solid rgba(255, 107, 107, 0.2);
+            border: 1px solid #eee;
             background: #f9f9f9;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .memory-text {
@@ -290,6 +291,12 @@
             
             .navbar-nav {
                 gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .navbar-nav li {
+                display: inline-block;
+                margin: 2px 4px;
             }
             
             .nav-link {
@@ -353,29 +360,59 @@
         }
 
         .memory-location {
-            margin-top: 10px;
-            text-align: right;
             font-size: 12px;
             font-weight: 500;
             color: white;
             background: linear-gradient(45deg, #a29bfe, #6c5ce7);
             padding: 6px 12px;
             border-radius: 20px;
-            float: right;
+            margin: 0;
+        }
+
+        .memory-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* Ajout classes meta/pill */
+        .memory-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            font-size: 13px;
+            font-weight: 500;
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .pill-grey {
+            background: #f1f2f6;
+            color: #2f3542;
         }
     </style>
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">Ludo & Oli ❤️</div>
-        <ul class="navbar-nav">
+        <div class="navbar-brand">Oli & Ludo</div>
+        <ul class="navbar-nav" style="margin-left: auto;">
             <li><a href="index.html" class="nav-link">Accueil</a></li>
             <li><a href="souvenirs.html" class="nav-link active">Souvenirs</a></li>
             <li><a href="messages.html" class="nav-link">Messages</a></li>
             <li><a href="voyages.html" class="nav-link">Voyages</a></li>
             <li><a href="admin.html" class="nav-link">Admin</a></li>
-            <li><a href="#" class="nav-link" id="logoutBtn">Déconnexion</a></li>
+            <li><a href="#" class="nav-link" onclick="logout()">Déconnexion</a></li>
         </ul>
     </nav>
 
@@ -536,13 +573,15 @@
                 memoryCard.innerHTML = `
                     <div class="memory-header">
                         <h3 class="memory-title">${data.title}</h3>
-                        <div class="memory-date">${formattedDate}</div>
                     </div>
                     <div class="memory-content">
                         <p class="memory-text">${data.description}</p>
                         ${data.photoURL ? `<img src="${data.photoURL}" alt="${data.title}" class="memory-photo">` : ''}
+                        <div class="memory-footer">
+                            ${data.location ? `<span class="pill">📍 ${data.location}</span>` : ''}
+                            <span class="pill pill-grey">${formattedDate}</span>
+                        </div>
                     </div>
-                    ${data.location ? `<div class="memory-location">📍 ${data.location}</div>` : ''}
                 `;
 
                 container.appendChild(memoryCard);
@@ -607,15 +646,34 @@
 
         import { signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-        document.getElementById("logoutBtn").addEventListener("click", async () => {
+        // Logout function for navbar
+        window.logout = async function() {
             await signOut(auth);
             window.location.reload();
-        });
+        };
 
         // Relancer le chargement si le filtre change
         document.getElementById('yearFilter').addEventListener('change', loadMemories);
         document.getElementById('monthFilter').addEventListener('change', loadMemories);
         document.getElementById('locationFilter').addEventListener('change', loadMemories);
+
+        // Préremplir les filtres depuis localStorage (après chargement DOM)
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedLocation = localStorage.getItem("selectedLocation");
+            const savedType = localStorage.getItem("selectedType");
+
+            if (savedLocation) {
+                // Attendre un court délai pour s'assurer que les options sont chargées
+                setTimeout(() => {
+                    const locationFilter = document.getElementById("locationFilter");
+                    const option = Array.from(locationFilter.options).find(opt => opt.value === savedLocation);
+                    if (option) {
+                        locationFilter.value = savedLocation;
+                        locationFilter.dispatchEvent(new Event("change"));
+                    }
+                }, 300);
+            }
+        });
     </script>
 </body>
 </html>

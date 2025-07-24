@@ -153,6 +153,7 @@
             font-size: 20px;
             font-weight: 900;
             margin-top: 10px;
+            margin-bottom: 10px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
@@ -170,6 +171,44 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar select {
+            padding: 10px 40px 10px 16px;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23777' stroke-width='2'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+        }
+
+        .filter-bar select:hover {
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.12);
+        }
+
+        .filter-bar select:focus {
+            outline: none;
+            border-color: #feca57;
+            box-shadow: 0 0 0 3px rgba(254, 202, 87, 0.3);
         }
 
         .conversations-container {
@@ -236,13 +275,19 @@
             object-fit: cover;
             max-height: none;
             display: block;
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Added line */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .conversation-text {
-            font-size: 14px;
-            color: #34495e;
-            margin-bottom: 10px;
-            font-style: italic;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-style: normal;
+            line-height: 1.6;
+            text-align: left;
+            font-weight: 500;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
         }
 
         .loading {
@@ -306,15 +351,15 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">Ludo & Oli ❤️</div>
-        <ul class="navbar-nav">
-            <li><a href="index.html" class="nav-link">Accueil</a></li>
-            <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
-            <li><a href="messages.html" class="nav-link active">Messages</a></li>
-            <li><a href="voyages.html" class="nav-link">Voyages</a></li>
-            <li><a href="admin.html" class="nav-link">Admin</a></li>
-            <li><a href="#" class="nav-link" id="logoutBtn">Déconnexion</a></li>
-        </ul>
+      <div class="navbar-brand">Oli & Ludo</div>
+      <ul class="navbar-nav" style="margin-left: auto;">
+        <li><a href="index.html" class="nav-link">Accueil</a></li>
+        <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
+        <li><a href="messages.html" class="nav-link active">Messages</a></li>
+        <li><a href="voyages.html" class="nav-link">Voyages</a></li>
+        <li><a href="admin.html" class="nav-link">Admin</a></li>
+        <li><a href="#" class="nav-link" id="logoutBtn">Déconnexion</a></li>
+      </ul>
     </nav>
 
     <div class="container">
@@ -328,12 +373,19 @@
         </div>
         
         <div class="content">
+            <div class="filter-bar">
+                <select id="monthFilter">
+                    <option value="">Tous les mois</option>
+                </select>
+                <select id="yearFilter">
+                    <option value="">Toutes les années</option>
+                </select>
+            </div>
             <div id="conversationsContainer" class="conversations-container">
                 <div class="loading">
                     Chargement des conversations... 💕
                 </div>
             </div>
-            
         </div>
     </div>
 
@@ -385,6 +437,36 @@
             }
 
             container.innerHTML = '';
+            // Filter bar population
+            const yearSet = new Set();
+            const monthSet = new Set();
+            snapshot.forEach(doc => {
+                const d = new Date(doc.data().date);
+                yearSet.add(d.getFullYear());
+                monthSet.add(d.toLocaleString('fr-FR', { month: 'long' }));
+            });
+
+            const yearSelect = document.getElementById('yearFilter');
+            const monthSelect = document.getElementById('monthFilter');
+
+            if (yearSelect.options.length === 1) {
+                Array.from(yearSet).sort().forEach(year => {
+                    const opt = document.createElement('option');
+                    opt.value = year;
+                    opt.textContent = year;
+                    yearSelect.appendChild(opt);
+                });
+            }
+
+            if (monthSelect.options.length === 1) {
+                Array.from(monthSet).forEach(month => {
+                    const opt = document.createElement('option');
+                    opt.value = month;
+                    opt.textContent = month;
+                    monthSelect.appendChild(opt);
+                });
+            }
+
             const colors = [
                 '#FF6B6B','#FF8E53','#FF9F43','#FFA726','#FFD93D','#6BCF7F','#4ECDC4','#45B7D1','#5DADE2',
                 '#A29BFE','#B983FF','#E84393','#FD79A8','#FF7675','#74B9FF','#00CEC9','#55EFC4','#FDCB6E',
@@ -395,7 +477,17 @@
             let i = 0;
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const formattedDate = new Date(data.date).toLocaleDateString('fr-FR', {
+                // Filtering logic
+                const selectedYear = yearSelect.value;
+                const selectedMonth = monthSelect.value;
+                const messageDate = new Date(data.date);
+                const messageYear = messageDate.getFullYear().toString();
+                const messageMonth = messageDate.toLocaleString('fr-FR', { month: 'long' });
+                if ((selectedYear && messageYear !== selectedYear) || (selectedMonth && messageMonth !== selectedMonth)) {
+                    return;
+                }
+
+                const formattedDate = messageDate.toLocaleDateString('fr-FR', {
                     day: '2-digit',
                     month: 'long',
                     year: 'numeric'
@@ -406,8 +498,8 @@
                 block.style.borderLeftColor = colors[i % colors.length];
                 block.innerHTML = `
                     <div class="memory-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h3 class="memory-title" style="font-size: 16px; font-weight: 700; color: #2c3e50; margin: 0;">${data.title || "Sans titre"}</h3>
-                        <div class="memory-date" style="font-size: 12px; color: #7f8c8d; background: rgba(255, 107, 107, 0.1); padding: 4px 8px; border-radius: 10px; font-weight: 500;">
+                        <h3 class="memory-title" style="font-size: 18px; font-weight: 700; color: #2c3e50; margin: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">${data.title || "Sans titre"}</h3>
+                        <div class="memory-date" style="font-size: 13px; color: #2c3e50; background: rgba(0, 0, 0, 0.05); padding: 4px 10px; border-radius: 999px; font-weight: 600;">
                             ${formattedDate}
                         </div>
                     </div>
@@ -477,6 +569,10 @@
             await signOut(auth);
             window.location.reload();
         });
+
+        // Filter bar listeners
+        document.getElementById('yearFilter').addEventListener('change', loadConversations);
+        document.getElementById('monthFilter').addEventListener('change', loadConversations);
     </script>
 </body>
 </html>

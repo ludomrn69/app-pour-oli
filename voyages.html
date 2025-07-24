@@ -499,6 +499,9 @@
         let visitedPlaces = [];
         let cityMarkers = [];
         let countryLayers = [];
+        // --- Collapsible state for regions and departments ---
+        let collapsedRegions = {};
+        let collapsedDepartments = {};
 
         // Couleurs pour les pays et villes
         const colors = [
@@ -560,12 +563,31 @@
                         (match.geojson.type === 'Polygon' || match.geojson.type === 'MultiPolygon')
                         ? match.geojson
                         : null;
+                    // Nouvelle logique enrichissement France
+                    let region = match.address?.region || match.address?.state || 'Inconnu';
+                    let department = match.address?.county?.replace("Métropole de ", "") || 'Inconnu';
+
+                    if (match.address?.country === "France") {
+                        try {
+                            const apiGouvResp = await fetch(`https://geo.api.gouv.fr/communes?lat=${match.lat}&lon=${match.lon}&fields=departement,region&format=json`);
+                            const gouvData = await apiGouvResp.json();
+                            if (gouvData.length > 0) {
+                                department = gouvData[0].departement.nom;
+                                region = gouvData[0].region.nom;
+                            }
+                        } catch (err) {
+                            console.warn("Erreur Geo API Gouv:", err);
+                        }
+                    }
+
                     return {
                         name: match.display_name.split(',')[0],
                         lat: parseFloat(match.lat),
                         lon: parseFloat(match.lon),
                         type: match.type,
                         country: match.address?.country || match.display_name.split(',').pop().trim(),
+                        region: region,
+                        department: department,
                         geojson
                     };
                 }
@@ -614,8 +636,10 @@
                     lat: placeData.lat,
                     lon: placeData.lon,
                     country: placeData.country,
+                    region: placeData.region,
+                    department: placeData.department,
                     type: isCountry ? 'country' : 'city',
-                    geojson: placeData.geojson ? JSON.stringify(placeData.geojson) : null,
+                    geojson: isCountry ? null : (placeData.geojson ? JSON.stringify(placeData.geojson) : null),
                     addedAt: serverTimestamp(),
                     addedBy: auth.currentUser.email
                 };
@@ -652,10 +676,20 @@
 
                 updateMap();
                 updateSidebar();
+                await cacheMemories();
                 
             } catch (error) {
                 console.error('Erreur lors du chargement:', error);
             }
+        }
+        // Fonction pour mettre en cache les souvenirs dans localStorage
+        async function cacheMemories() {
+            const memorySnapshot = await getDocs(collection(db, "memories"));
+            const memoryList = [];
+            memorySnapshot.forEach(doc => {
+                memoryList.push(doc.data());
+            });
+            localStorage.setItem("memories", JSON.stringify(memoryList));
         }
 
         // Mettre à jour la carte
@@ -688,7 +722,7 @@
                     }).addTo(map);
 
                     polygonLayer.bindPopup(`
-                        <div style="text-align: center;">
+                        <div class="city-popup" data-city="${city.name}">
                             <strong>🏙️ ${city.name}</strong><br>
                             <small>${city.country}</small>
                         </div>
@@ -705,7 +739,7 @@
                     }).addTo(map);
 
                     marker.bindPopup(`
-                        <div style="text-align: center;">
+                        <div class="city-popup" data-city="${city.name}">
                             <strong>🏙️ ${city.name}</strong><br>
                             <small>${city.country}</small>
                         </div>
@@ -722,42 +756,72 @@
                 async function colorCountryWithNaturalEarth(countryName, color) {
                     // Table de correspondance des noms de pays (français -> anglais)
                     const countryNameMap = {
-                        'espagne': 'Spain',
-                        'allemagne': 'Germany',
-                        'italie': 'Italy',
-                        'france': 'France',
-                        'royaume uni': 'United Kingdom',
-                        'portugal': 'Portugal',
-                        'grèce': 'Greece',
-                        'pologne': 'Poland',
-                        'autriche': 'Austria',
-                        'suisse': 'Switzerland',
-                        'pays-bas': 'Netherlands',
-                        'suède': 'Sweden',
-                        'norvège': 'Norway',
-                        'finlande': 'Finland',
-                        'irlande': 'Ireland',
-                        'belgique': 'Belgium',
-                        'danemark': 'Denmark',
-                        'république tchèque': 'Czechia',
-                        'hongrie': 'Hungary',
-                        'roumanie': 'Romania',
-                        'bulgarie': 'Bulgaria',
-                        'slovaquie': 'Slovakia',
-                        'afrique du sud': 'South Africa',
-                        'turquie': 'Turkey'
+                      'france': 'France',
+                      'espagne': 'Spain',
+                      'italie': 'Italy',
+                      'allemagne': 'Germany',
+                      'royaume uni': 'United Kingdom',
+                      'royaume-uni': 'United Kingdom',
+                      'portugal': 'Portugal',
+                      'grèce': 'Greece',
+                      'pologne': 'Poland',
+                      'autriche': 'Austria',
+                      'suisse': 'Switzerland',
+                      'pays-bas': 'Netherlands',
+                      'suède': 'Sweden',
+                      'norvège': 'Norway',
+                      'finlande': 'Finland',
+                      'irlande': 'Ireland',
+                      'belgique': 'Belgium',
+                      'danemark': 'Denmark',
+                      'république tchèque': 'Czech Republic',
+                      'hongrie': 'Hungary',
+                      'roumanie': 'Romania',
+                      'bulgarie': 'Bulgaria',
+                      'slovaquie': 'Slovakia',
+                      'turquie': 'Turkey',
+                      'algérie': 'Algeria',
+                      'maroc': 'Morocco',
+                      'tunisie': 'Tunisia',
+                      'égypte': 'Egypt',
+                      'brésil': 'Brazil',
+                      'canada': 'Canada',
+                      'états-unis': 'United States of America',
+                      'usa': 'United States of America',
+                      'chine': 'China',
+                      'japon': 'Japan',
+                      'corée du sud': 'South Korea',
+                      'corée': 'South Korea',
+                      'inde': 'India',
+                      'australie': 'Australia',
+                      'nouvelle-zélande': 'New Zealand',
+                      'mexique': 'Mexico',
+                      'argentine': 'Argentina',
+                      'colombie': 'Colombia',
+                      'chili': 'Chile',
+                      'pérou': 'Peru',
+                      'russie': 'Russia',
+                      'ukraine': 'Ukraine',
+                      'iran': 'Iran',
+                      'iraq': 'Iraq',
+                      'afrique du sud': 'South Africa',
+                      'nigeria': 'Nigeria',
+                      'sénégal': 'Senegal',
+                      'mali': 'Mali',
+                      'côte d’ivoire': 'Ivory Coast',
+                      "côte d'ivoire": 'Ivory Coast',
+                      'république démocratique du congo': 'Democratic Republic of the Congo',
+                      'congo': 'Republic of the Congo',
+                      'kenya': 'Kenya',
+                      'éthiopie': 'Ethiopia'
                     };
                     try {
                         const response = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson');
                         const geoJsonData = await response.json();
 
-                        const normalizedName = countryName.toLowerCase()
-                            .normalize('NFD')
-                            .replace(/[\u0300-\u036f]/g, '')
-                            .replace(/-/g, ' ')
-                            .trim();
-
-                        const geoJsonName = (countryNameMap[normalizedName] || normalizedName).toLowerCase();
+                        // Normalize input and use mapping
+                        const normalized = countryNameMap[countryName.trim().toLowerCase()] || countryName;
+                        const geoJsonName = normalized.toLowerCase();
 
                         const matchedFeature = geoJsonData.features.find(feature => {
                             const admin = (feature.properties.ADMIN || '').toLowerCase();
@@ -796,16 +860,104 @@
         }
 
         // Mettre à jour la sidebar
+        // Ajout d'un bouton pour masquer/afficher les régions/départements
+        let showRegions = true;
         function updateSidebar() {
             const cities = visitedPlaces.filter(p => p.type === 'city');
             const countries = visitedPlaces.filter(p => p.type === 'country');
 
-            // Mettre à jour les statistiques
             document.getElementById('citiesCount').textContent = cities.length;
             document.getElementById('countriesCount').textContent = countries.length;
 
-            // Mettre à jour les listes
-            updatePlacesList('citiesList', cities, '🏙️');
+            const citiesList = document.getElementById('citiesList');
+            citiesList.innerHTML = '';
+
+
+            // Nouveau regroupement: pays > région > département > villes
+            const grouped = {};
+            cities.forEach(city => {
+                const country = city.country || 'Inconnu';
+                const region = city.region || 'Inconnu';
+                const department = city.department || 'Inconnu';
+                if (!grouped[country]) grouped[country] = {};
+                if (!grouped[country][region]) grouped[country][region] = {};
+                if (!grouped[country][region][department]) grouped[country][region][department] = [];
+                grouped[country][region][department].push(city);
+            });
+
+            for (const country in grouped) {
+                const countryHeader = document.createElement('div');
+                countryHeader.className = 'section-title';
+                countryHeader.textContent = `🇫🇷 ${country}`;
+                // Add click event to collapse all regions of this country
+                countryHeader.style.cursor = 'pointer';
+                countryHeader.addEventListener('click', () => {
+                    for (const region in grouped[country]) {
+                        collapsedRegions[region] = true;
+                    }
+                    updateSidebar();
+                });
+                citiesList.appendChild(countryHeader);
+
+                for (const region in grouped[country]) {
+                    const regionContainer = document.createElement('div');
+                    regionContainer.style.marginLeft = '10px';
+
+                    const regionHeader = document.createElement('div');
+                    regionHeader.style = 'font-weight: bold; color: #2c3e50; margin: 8px 0 4px 0; cursor: pointer;';
+                    regionHeader.innerHTML = `📍 ${region}`;
+                    regionHeader.addEventListener('click', () => {
+                        collapsedRegions[region] = !collapsedRegions[region];
+                        updateSidebar();
+                    });
+                    regionContainer.appendChild(regionHeader);
+
+                    if (!collapsedRegions[region]) {
+                        for (const department in grouped[country][region]) {
+                            const departmentContainer = document.createElement('div');
+                            departmentContainer.style.marginLeft = '15px';
+
+                            const departmentHeader = document.createElement('div');
+                            departmentHeader.style = 'font-weight: 500; color: #34495e; margin: 4px 0; cursor: pointer;';
+                            departmentHeader.innerHTML = `📍 ${department}`;
+                            departmentHeader.addEventListener('click', () => {
+                                collapsedDepartments[`${region}-${department}`] = !collapsedDepartments[`${region}-${department}`];
+                                updateSidebar();
+                            });
+                            departmentContainer.appendChild(departmentHeader);
+
+                            if (!collapsedDepartments[`${region}-${department}`]) {
+                                grouped[country][region][department].forEach(city => {
+                                    const placeDiv = document.createElement('div');
+                                    placeDiv.className = `place-item ${city.type}`;
+                                    placeDiv.style.marginLeft = '20px';
+                                    placeDiv.onclick = () => {
+                                        focusOnPlace(city.id);
+                                        localStorage.setItem("selectedPlace", JSON.stringify({
+                                            name: city.name,
+                                            country: city.country,
+                                            type: city.type
+                                        }));
+                                    };
+                                    placeDiv.innerHTML = `
+                                        <div>
+                                            <div class="place-name">🏙️ ${city.name}</div>
+                                            <small style="color: #7f8c8d;">${city.country}</small>
+                                        </div>
+                                        <button class="delete-btn" onclick="event.stopPropagation(); deletePlace('${city.id}')">×</button>
+                                    `;
+                                    departmentContainer.appendChild(placeDiv);
+                                });
+                            }
+
+                            regionContainer.appendChild(departmentContainer);
+                        }
+                    }
+
+                    citiesList.appendChild(regionContainer);
+                }
+            }
+
             updatePlacesList('countriesList', countries, '🌍');
         }
 
@@ -826,16 +978,77 @@
             places.forEach(place => {
                 const placeDiv = document.createElement('div');
                 placeDiv.className = `place-item ${place.type}`;
+                // Quand on clique sur une ville/pays dans la liste, on centre la carte ET on stocke la ville/pays cliqué pour l'utiliser plus tard (ex: souvenirs.html)
+                placeDiv.onclick = () => {
+                    focusOnPlace(place.id);
+                    localStorage.setItem("selectedPlace", JSON.stringify({
+                        name: place.name,
+                        country: place.country,
+                        type: place.type
+                    }));
+                };
                 placeDiv.innerHTML = `
                     <div>
                         <div class="place-name">${icon} ${place.name}</div>
                         ${place.type === 'city' ? `<small style="color: #7f8c8d;">${place.country}</small>` : ''}
                     </div>
-                    <button class="delete-btn" onclick="deletePlace('${place.id}')">×</button>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deletePlace('${place.id}')">×</button>
                 `;
                 container.appendChild(placeDiv);
             });
         }
+
+        // Fonction pour centrer la carte sur un lieu
+        window.flyToPlace = function(lat, lon, type) {
+            const zoom = type === 'city' ? 10 : 4;
+            map.setView([lat, lon], zoom);
+        };
+
+        // Fonction focusOnPlace pour centrer et ouvrir le popup ou surligner le pays
+        window.focusOnPlace = function (placeId) {
+            const place = visitedPlaces.find(p => p.id === placeId);
+            if (!place) return;
+
+            const zoom = place.type === 'city' ? 10 : 4;
+            map.setView([place.lat, place.lon], zoom);
+
+            // Ouvrir le popup s'il s'agit d'une ville
+            if (place.type === 'city') {
+                const marker = cityMarkers.find(m => {
+                    const coords = m.getBounds ? m.getBounds().getCenter() : m.getLatLng();
+                    return coords.lat === place.lat && coords.lng === place.lon;
+                });
+                if (marker && marker.openPopup) {
+                    marker.openPopup();
+                }
+            }
+
+            // Afficher les souvenirs associés à la ville (filtrer par location)
+            if (place.type === 'city') {
+                const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+                const matching = memories.filter(m => m.location?.toLowerCase() === place.name.toLowerCase());
+                if (matching.length > 0) {
+                    const popupContent = matching.map(mem => {
+                        const dateObj = new Date(mem.date);
+                        const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        return `
+                            <div style="margin-bottom: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong>${mem.title}</strong>
+                                    <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
+                                </div>
+                                <img src="${mem.photoURL}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                <hr style="margin: 8px 0;">
+                            </div>
+                        `;
+                    }).join('');
+                    L.popup({ maxWidth: 300 })
+                        .setLatLng([place.lat, place.lon])
+                        .setContent(`<div style="max-height: 300px; overflow-y: auto;"><h4>📸 Souvenirs à ${place.name}</h4><hr style="margin: 10px 0;">${popupContent}</div>`)
+                        .openOn(map);
+                }
+            }
+        };
 
         // --- Suggestion et autocomplétion pour les lieux ---
         async function fetchSuggestions(query) {
@@ -918,6 +1131,48 @@
             if (user) {
                 initMap();
                 loadPlaces();
+
+                // --- Affichage des souvenirs dans le popup d'une ville ---
+                map.on('popupopen', function(e) {
+                    const contentEl = e.popup.getContent();
+                    const div = document.createElement('div');
+                    div.innerHTML = contentEl;
+
+                    const cityEl = div.querySelector('.city-popup');
+                    if (cityEl) {
+                        const cityName = cityEl.getAttribute('data-city');
+                        const memories = JSON.parse(localStorage.getItem("memories") || "[]");
+                        const matching = memories.filter(m => m.location?.toLowerCase() === cityName.toLowerCase());
+
+                        if (matching.length > 0) {
+                            const popupContent = matching.map(mem => {
+                                const dateObj = new Date(mem.date);
+                                const formattedDate = dateObj.toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                });
+                                return `
+                                    <div style="margin-bottom: 14px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <strong>— ${mem.title}</strong>
+                                            <span style="font-size: 12px; color: #fff;">${formattedDate}</span>
+                                        </div>
+                                        <img src="${mem.photoURL}" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 5px;" />
+                                        <hr style="margin: 8px 0;">
+                                    </div>
+                                `;
+                            }).join('');
+
+                            e.popup.setContent(`
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <h4>📸 Souvenirs à ${cityName}</h4>
+                                    <hr style="margin: 10px 0;">${popupContent}
+                                </div>
+                            `);
+                        }
+                    }
+                });
             } else {
                 window.location.href = "admin.html";
             }
