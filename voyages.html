@@ -556,13 +556,17 @@
                 }
 
                 if (match) {
+                    const geojson = match.geojson &&
+                        (match.geojson.type === 'Polygon' || match.geojson.type === 'MultiPolygon')
+                        ? match.geojson
+                        : null;
                     return {
                         name: match.display_name.split(',')[0],
                         lat: parseFloat(match.lat),
                         lon: parseFloat(match.lon),
                         type: match.type,
                         country: match.address?.country || match.display_name.split(',').pop().trim(),
-                        geojson: match.geojson || null
+                        geojson
                     };
                 }
                 return null;
@@ -611,6 +615,7 @@
                     lon: placeData.lon,
                     country: placeData.country,
                     type: isCountry ? 'country' : 'city',
+                    geojson: placeData.geojson || null,
                     addedAt: serverTimestamp(),
                     addedBy: auth.currentUser.email
                 };
