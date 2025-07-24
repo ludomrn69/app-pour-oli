@@ -223,8 +223,8 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            align-items: start;
-            height: auto;
+            align-items: stretch;
+            height: calc(100vh - 120px);
         }
 
         .admin-section {
@@ -254,6 +254,10 @@
         #deleteMemoriesList {
             overflow-y: auto;
             max-height: 100vh;
+            height: 100%;
+        }
+        #deleteMessagesList {
+            height: 100%;
         }
 
         .form-group {
@@ -627,12 +631,12 @@
         </div>
 
         <!-- Add Message Section -->
-        <div class="admin-section">
+        <div class="admin-section" style="height: 100%; display: flex; flex-direction: column;">
             <div class="section-header">
                 <h2>Ajouter une Conversation 💬</h2>
             </div>
-            <div class="section-content">
-                <form id="messageForm">
+            <div class="section-content" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <form id="messageForm" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
                     <div class="form-group">
                         <label class="form-label">Titre de la conversation</label>
                         <input type="text" id="messageTitle" class="form-input" required>
@@ -648,7 +652,7 @@
                     <div class="form-group">
                         <label class="form-label">Screenshots de la conversation</label>
                         <div class="file-input-container">
-                            <input type="file" id="messagePhoto" class="file-input" accept="image/*" multiple required>
+                            <input type="file" id="messagePhoto" class="file-input" accept="image/*" multiple>
                             <label for="messagePhoto" class="file-input-label">
                                 📱 Choisir les screenshots
                             </label>
@@ -662,7 +666,7 @@
                 <div id="messageMessage"></div>
             </div>
         </div>
-        <div class="admin-section" style="height: 100vh; display: flex; flex-direction: column;">
+        <div class="admin-section" style="height: 100%; display: flex; flex-direction: column;">
             <div class="section-header" style="flex-shrink: 0;">
                 <h2>Modifier ou supprimer un souvenir ✏️🗑</h2>
             </div>
@@ -671,7 +675,7 @@
             </div>
         </div>
 
-        <div class="admin-section" style="min-height: 100%; display: flex; flex-direction: column;">
+        <div class="admin-section" style="height: 100%; display: flex; flex-direction: column;">
             <div class="section-header">
                 <h2>Modifier ou supprimer une conv ✏️🗑</h2>
             </div>
@@ -849,12 +853,28 @@
             removeBtn.type = 'button';
             removeBtn.onclick = (e) => {
                 e.preventDefault();
-                wrapper.remove();
-                // Mettre à jour les tableaux de photos actuelles
                 if (type === 'memory') {
+                    // Retire l'image supprimée de la liste des anciennes
                     currentMemoryPhotos = currentMemoryPhotos.filter(url => url !== src);
+                    // Supprime aussi du DOM
+                    wrapper.remove();
                 } else if (type === 'message') {
-                    currentMessagePhotos = currentMessagePhotos.filter(url => url !== src);
+                    // Retire l'image supprimée de la liste des anciennes
+                    currentMessagePhotos = currentMessagePhotos.filter(url => {
+                        // Comparaison robuste pour éviter les erreurs dues aux tokens ou aux différences d'URL
+                        const cleanUrl = url.split('?')[0];
+                        const cleanSrc = src.split('?')[0];
+                        return !cleanUrl.includes(cleanSrc);
+                    });
+                    // Supprime aussi du DOM
+                    wrapper.remove();
+                    // After removal, enable/disable the submit button accordingly
+                    const messageSubmitBtn = document.getElementById('messageSubmit');
+                    if (currentMessagePhotos.length > 0 || document.getElementById('messagePhoto').files.length > 0) {
+                        messageSubmitBtn.disabled = false;
+                    } else {
+                        messageSubmitBtn.disabled = true;
+                    }
                 }
             };
 
@@ -862,12 +882,14 @@
             wrapper.appendChild(removeBtn);
             container.appendChild(wrapper);
 
+            // Ajouter à la liste des anciennes images si ce n’est pas un nouveau fichier
+            if (!isNewFile && type === 'message' && !currentMessagePhotos.includes(src)) {
+                currentMessagePhotos.push(src);
+            }
             // Ajouter à la liste des photos actuelles si ce n'est pas un nouveau fichier
             if (!isNewFile) {
                 if (type === 'memory' && !currentMemoryPhotos.includes(src)) {
                     currentMemoryPhotos.push(src);
-                } else if (type === 'message' && !currentMessagePhotos.includes(src)) {
-                    currentMessagePhotos.push(src);
                 }
             }
         }
@@ -989,30 +1011,34 @@
                 const title = document.getElementById('messageTitle').value;
                 const photoFiles = document.getElementById('messagePhoto').files;
 
+                // Vérification obligatoire d'au moins une image (en preview ou nouvelle)
+                const hasOldPhotos = currentMessagePhotos.length > 0;
+                const hasNewPhotos = photoFiles && photoFiles.length > 0;
+
+                if (!hasOldPhotos && !hasNewPhotos) {
+                    throw new Error('Au moins une image est requise pour les conversations');
+                }
+
                 // Edition mode
                 if (editingItem && editingType === 'conversations') {
-                    // Récupérer les nouvelles images à uploader
                     const newFiles = [];
-                    
-                    // Convertir les nouveaux fichiers en File objects
                     for (let i = 0; i < photoFiles.length; i++) {
                         newFiles.push(photoFiles[i]);
                     }
 
-                    // Upload des nouvelles images
                     let newPhotoURLs = [];
                     if (newFiles.length > 0) {
                         newPhotoURLs = await uploadMultipleImages(newFiles, 'messages');
                     }
 
-                    // Combiner les anciennes photos conservées avec les nouvelles
                     const finalPhotoURLs = [...currentMessagePhotos, ...newPhotoURLs];
 
                     await updateDoc(doc(db, 'conversations', editingItem), {
                         title,
                         date,
                         description,
-                        photoURLs: finalPhotoURLs
+                        photoURLs: finalPhotoURLs,
+                        updatedAt: serverTimestamp()
                     });
 
                     messageDiv.innerHTML = '<div class="success-message">Conversation modifiée avec succès ! 💕</div>';
@@ -1021,10 +1047,6 @@
                     window.location.reload();
                 } else {
                     // Mode ajout
-                    if (!photoFiles || photoFiles.length === 0) {
-                        throw new Error('Au moins une image est requise pour les conversations');
-                    }
-
                     const photoURLs = await uploadMultipleImages(photoFiles, 'messages');
 
                     await addDoc(collection(db, 'conversations'), {
@@ -1062,11 +1084,11 @@
         function resetMessageForm() {
             editingItem = null;
             editingType = null;
+            document.getElementById('messagePreview').innerHTML = '';
             currentMessagePhotos = [];
             document.getElementById('messageSubmit').textContent = 'Ajouter la conversation 💕';
             document.getElementById('cancelMessageEdit').style.display = 'none';
             messageForm.reset();
-            document.getElementById('messagePreview').innerHTML = '';
         }
 
         async function renderDeletableItems(collectionName, containerId) {
@@ -1076,8 +1098,11 @@
 
             snapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                // Format date in dd/mm/YYYY (fr-FR)
-                const formattedDate = data.date ? new Date(data.date).toLocaleDateString('fr-FR') : '';
+                // Format date in dd/MM/yyyy with leading zeros
+                const dateObj = data.date ? new Date(data.date) : null;
+                const formattedDate = dateObj
+                    ? `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`
+                    : '';
                 const card = document.createElement('div');
                 card.style.border = '1px solid #ccc';
                 card.style.padding = '15px';
@@ -1102,14 +1127,18 @@
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <strong style="color: #2c3e50; font-size: 16px;">${data.title || 'Message'}</strong>
-                        <small style="color: #7f8c8d; font-weight: 500;">${formattedDate}</small>
+                        <div style="background: #f1f2f6; color: #2c3e50; font-size: 14px; font-weight: 600; padding: 6px 14px; border-radius: 999px;">
+                            ${formattedDate}
+                        </div>
                     </div>
                     <p style="font-size: 14px; color: #34495e; word-wrap: break-word; white-space: pre-wrap; margin-bottom: 12px; line-height: 1.4;">${data.description}</p>
                     ${photoGalleryHTML}
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                        <div style="color: white; background: linear-gradient(135deg, #a18cd1, #fbc2eb); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                            ${data.location ? `📍 ${data.location}` : ''}
-                        </div>
+                        ${data.location ? `
+                            <div style="color: white; background: linear-gradient(135deg, #a18cd1, #fbc2eb); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                                📍 ${data.location}
+                            </div>
+                        ` : ''}
                         <div style="display: flex; gap: 10px;">
                             <button class="edit-button" style="background: linear-gradient(135deg, #ffa500, #ff8c00); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: transform 0.2s;">
                                 ✏️ Modifier
