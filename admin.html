@@ -224,7 +224,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             align-items: stretch;
-            height: calc(100vh - 120px);
+            min-height: calc(100vh - 120px);
         }
 
         .admin-section {
@@ -482,6 +482,12 @@
             .main-container {
                 grid-template-columns: 1fr;
                 gap: 20px;
+            }
+
+            .admin-section:first-of-type {
+                width: 100% ;
+                max-width: 100%;
+                height: auto !important;
             }
             
             .section-content {
