@@ -519,6 +519,7 @@
         window.logout = async () => {
             try {
                 await signOut(auth);
+                window.location.reload(); // force reload to clear greeting
             } catch (error) {
                 console.error('Erreur de déconnexion:', error);
             }
@@ -608,6 +609,7 @@
                     memoryForm.reset();
                     document.getElementById('memoryPreview').innerHTML = '';
                     renderDeletableItems("memories", "deleteMemoriesList");
+                    submitBtn.disabled = false;
                     return;
                 }
                 
@@ -683,6 +685,7 @@
                     messageForm.reset();
                     document.getElementById('messagePreview').innerHTML = '';
                     renderDeletableItems("conversations", "deleteMessagesList");
+                    submitBtn.disabled = false;
                     return;
                 }
                 

@@ -325,6 +325,7 @@
             <li><a href="souvenirs.html" class="nav-link active">Souvenirs</a></li>
             <li><a href="messages.html" class="nav-link">Messages</a></li>
             <li><a href="admin.html" class="nav-link">Admin</a></li>
+            <li><a href="#" class="nav-link" id="logoutBtn">Déconnexion</a></li>
         </ul>
     </nav>
 
@@ -481,6 +482,13 @@
             } else {
                 window.location.href = "admin.html";
             }
+        });
+
+        import { signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await signOut(auth);
+            window.location.reload();
         });
     </script>
 </body>
