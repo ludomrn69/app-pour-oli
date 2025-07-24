@@ -652,7 +652,9 @@
                     </div>
                     <div class="memory-content">
                         <p class="memory-text">${data.description}</p>
-                        ${data.photoURL ? `<img src="${data.photoURL}" alt="${data.title}" class="memory-photo">` : ''}
+                        ${(data.photoURLs || []).map(url => `
+                            <img src="${url}" alt="${data.title}" class="memory-photo">
+                        `).join('')}
                         <div class="memory-footer">
                             ${data.location ? `<span class="pill">📍 ${data.location}</span>` : ''}
                             <span class="pill pill-grey">${formattedDate}</span>

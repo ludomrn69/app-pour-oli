@@ -566,7 +566,9 @@
                         </div>
                     </div>
                     <div class="conversation-text">${data.description}</div>
-                    <img src="${data.photoURL}" class="conversation-image" alt="${data.description}">
+                    ${(data.photoURLs || []).map(url => `
+                        <img src="${url}" class="conversation-image" alt="${data.description}">
+                    `).join('')}
                 `;
 
                 container.appendChild(block);
