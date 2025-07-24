@@ -12,11 +12,9 @@
         connect-src 'self' https://*.firebaseio.com https://*.googleapis.com;
         font-src 'self' data:;
         object-src 'none';
-        frame-ancestors 'none';
     ">
 
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -28,6 +26,7 @@
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❤️</text></svg>">
+    <link rel="icon" href="data:," />
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -395,7 +394,7 @@
             <li><a href="index.html" class="nav-link">Accueil</a></li>
             <li><a href="souvenirs.html" class="nav-link">Souvenirs</a></li>
             <li><a href="messages.html" class="nav-link">Messages</a></li>
-            <li><a href="carte.html" class="nav-link active">Nos Voyages</a></li>
+            <li><a href="voyages.html" class="nav-link active">Voyages</a></li>
             <li><a href="admin.html" class="nav-link">Admin</a></li>
             <li><a href="#" class="nav-link" id="logoutBtn">Déconnexion</a></li>
         </ul>
@@ -425,7 +424,21 @@
                         id="placeInput" 
                         class="search-input" 
                         placeholder="Entrer une ville ou un pays..."
+                        list="placeSuggestions"
                     >
+                    <div style="margin-bottom: 10px; display: flex; justify-content: center;">
+                        <div id="customToggle" style="background: #f1f1f1; border-radius: 999px; display: flex; overflow: hidden; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+                            <label id="toggleCity" style="padding: 10px 20px; cursor: pointer; background: #ff6b6b; color: white; font-weight: bold; border-radius: 999px 0 0 999px;">
+                                <input type="radio" name="placeType" value="city" checked style="display: none;">
+                                Villes
+                            </label>
+                            <label id="toggleCountry" style="padding: 10px 20px; cursor: pointer; color: #2c3e50; font-weight: bold;">
+                                <input type="radio" name="placeType" value="country" style="display: none;">
+                                Pays
+                            </label>
+                        </div>
+                    </div>
+                    <datalist id="placeSuggestions"></datalist>
                     <button id="addPlaceBtn" class="add-btn">
                         ✈️ Ajouter ce lieu
                     </button>
@@ -505,20 +518,51 @@
             map.getContainer().style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         }
 
-        // Géocodage simple avec Nominatim
+        // Géocodage amélioré avec Nominatim : meilleure détection des pays (class+type)
         async function geocodePlace(placeName) {
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1`);
+                console.log("📍 geocodePlace lancé pour :", placeName);
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&polygon_geojson=1&q=${encodeURIComponent(placeName)}&limit=50&addressdetails=1`);
                 const data = await response.json();
-                
-                if (data.length > 0) {
-                    const place = data[0];
+                data.forEach(p => {
+                    console.log(`[${p.osm_type}] ${p.display_name} → class: ${p.class}, type: ${p.type}, geojson: ${p.geojson?.type}`);
+                });
+                const selectedType = document.querySelector('input[name="placeType"]:checked').value;
+
+                let match = null;
+                console.log("Résultats bruts Nominatim:", data);
+                if (selectedType === 'country') {
+                    match = data.find(p =>
+                        p.type === 'country' ||
+                        (p.class === 'boundary' && (p.type === 'administrative' || p.type === 'political'))
+                    );
+                } else {
+                    match = data.find(p =>
+                        p.class === 'boundary' &&
+                        p.type === 'administrative' &&
+                        p.geojson &&
+                        (p.geojson.type === 'Polygon' || p.geojson.type === 'MultiPolygon')
+                    ) || data.find(p =>
+                        p.geojson &&
+                        (p.geojson.type === 'Polygon' || p.geojson.type === 'MultiPolygon')
+                    ) || data.find(p => p.type !== 'country');
+                }
+                console.log("Match sélectionné :", match);
+                console.log("GeoJSON type :", match?.geojson?.type);
+                if (match) {
+                    console.log("✅ Match trouvé :", match);
+                } else {
+                    console.warn("⚠️ Aucun résultat sélectionné dans Nominatim");
+                }
+
+                if (match) {
                     return {
-                        name: place.display_name.split(',')[0],
-                        lat: parseFloat(place.lat),
-                        lon: parseFloat(place.lon),
-                        type: place.type,
-                        country: place.display_name.split(',').pop().trim()
+                        name: match.display_name.split(',')[0],
+                        lat: parseFloat(match.lat),
+                        lon: parseFloat(match.lon),
+                        type: match.type,
+                        country: match.address?.country || match.display_name.split(',').pop().trim(),
+                        geojson: match.geojson || null
                     };
                 }
                 return null;
@@ -557,10 +601,9 @@
                     throw new Error('Ce lieu est déjà dans votre liste');
                 }
 
-                // Déterminer le type (pays ou ville)
-                const isCountry = placeData.type === 'administrative' || 
-                                 placeData.name === placeData.country ||
-                                 ['country', 'nation'].includes(placeData.type);
+                // Déterminer le type (pays ou ville) selon le toggle sélectionné
+                const selectedType = document.querySelector('input[name="placeType"]:checked').value;
+                const isCountry = selectedType === 'country';
 
                 const newPlace = {
                     name: placeData.name,
@@ -624,47 +667,120 @@
             // Ajouter les marqueurs pour les villes
             cities.forEach((city, index) => {
                 const color = colors[index % colors.length];
-                
-                const marker = L.circleMarker([city.lat, city.lon], {
-                    radius: 8,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(map);
+                if (city.geojson && (city.geojson.type === 'Polygon' || city.geojson.type === 'MultiPolygon')) {
+                    const layer = L.geoJSON(city.geojson, {
+                        style: {
+                            color: color,
+                            fillColor: color,
+                            fillOpacity: 0.3,
+                            weight: 2
+                        }
+                    }).addTo(map);
+                    layer.bindPopup(`
+                        <div style="text-align: center;">
+                            <strong>🏙️ ${city.name}</strong><br>
+                            <small>${city.country}</small>
+                        </div>
+                    `);
+                    cityMarkers.push(layer);
+                } else {
+                    const marker = L.circleMarker([city.lat, city.lon], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map);
 
-                marker.bindPopup(`
-                    <div style="text-align: center;">
-                        <strong>🏙️ ${city.name}</strong><br>
-                        <small>${city.country}</small>
-                    </div>
-                `);
+                    marker.bindPopup(`
+                        <div style="text-align: center;">
+                            <strong>🏙️ ${city.name}</strong><br>
+                            <small>${city.country}</small>
+                        </div>
+                    `);
 
-                cityMarkers.push(marker);
+                    cityMarkers.push(marker);
+                }
             });
 
-            // Pour les pays, on ajoute un cercle plus grand (simplification)
-            countries.forEach((country, index) => {
+            // Pour les pays, utiliser Natural Earth GeoJSON et une correspondance flexible
+            countries.forEach(async (country, index) => {
                 const color = colors[(cities.length + index) % colors.length];
-                
-                const circle = L.circle([country.lat, country.lon], {
-                    radius: 200000, // 200km de rayon
-                    fillColor: color,
-                    color: color,
-                    weight: 3,
-                    opacity: 0.7,
-                    fillOpacity: 0.3
-                }).addTo(map);
 
-                circle.bindPopup(`
-                    <div style="text-align: center;">
-                        <strong>🌍 ${country.name}</strong><br>
-                        <small>Pays visité</small>
-                    </div>
-                `);
+                async function colorCountryWithNaturalEarth(countryName, color) {
+                    // Table de correspondance des noms de pays (français -> anglais)
+                    const countryNameMap = {
+                        'espagne': 'Spain',
+                        'allemagne': 'Germany',
+                        'italie': 'Italy',
+                        'france': 'France',
+                        'royaume uni': 'United Kingdom',
+                        'portugal': 'Portugal',
+                        'grèce': 'Greece',
+                        'pologne': 'Poland',
+                        'autriche': 'Austria',
+                        'suisse': 'Switzerland',
+                        'pays-bas': 'Netherlands',
+                        'suède': 'Sweden',
+                        'norvège': 'Norway',
+                        'finlande': 'Finland',
+                        'irlande': 'Ireland',
+                        'belgique': 'Belgium',
+                        'danemark': 'Denmark',
+                        'république tchèque': 'Czechia',
+                        'hongrie': 'Hungary',
+                        'roumanie': 'Romania',
+                        'bulgarie': 'Bulgaria',
+                        'slovaquie': 'Slovakia',
+                        'afrique du sud': 'South Africa',
+                        'turquie': 'Turkey'
+                    };
+                    try {
+                        const response = await fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson');
+                        const geoJsonData = await response.json();
 
-                countryLayers.push(circle);
+                        const normalizedName = countryName.toLowerCase()
+                            .normalize('NFD')
+                            .replace(/[\u0300-\u036f]/g, '')
+                            .replace(/-/g, ' ')
+                            .trim();
+
+                        const geoJsonName = (countryNameMap[normalizedName] || normalizedName).toLowerCase();
+
+                        const matchedFeature = geoJsonData.features.find(feature => {
+                            const admin = (feature.properties.ADMIN || '').toLowerCase();
+                            return admin === geoJsonName;
+                        });
+
+                        if (matchedFeature) {
+                            const layer = L.geoJSON(matchedFeature, {
+                                style: {
+                                    color: color,
+                                    fillColor: color,
+                                    fillOpacity: 0.4,
+                                    weight: 3,
+                                    opacity: 0.8
+                                }
+                            }).addTo(map);
+
+                            layer.bindPopup(`
+                                <div style="text-align: center;">
+                                    <strong>🌍 ${matchedFeature.properties.NAME}</strong><br>
+                                    <small>Pays visité</small>
+                                </div>
+                            `);
+
+                            countryLayers.push(layer);
+                        } else {
+                            console.warn('Pays non trouvé dans Natural Earth:', country.name);
+                        }
+                    } catch (error) {
+                        console.error('Erreur Natural Earth:', error);
+                    }
+                }
+
+                await colorCountryWithNaturalEarth(country.name, color);
             });
         }
 
@@ -710,6 +826,58 @@
             });
         }
 
+        // --- Suggestion et autocomplétion pour les lieux ---
+        async function fetchSuggestions(query) {
+            if (query.length < 2) return [];
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+            const data = await resp.json();
+            return data.map(place => ({
+                label: place.display_name,
+                lat: parseFloat(place.lat),
+                lon: parseFloat(place.lon),
+                type: place.type
+            }));
+        }
+
+        document.getElementById('placeInput').addEventListener('input', async (e) => {
+            const list = document.getElementById('placeSuggestions');
+            const suggestions = await fetchSuggestions(e.target.value);
+            list.innerHTML = suggestions.map(opt => `<option value="${opt.label}">`).join('');
+        });
+
+        document.getElementById('placeInput').addEventListener('change', async (e) => {
+            const selected = e.target.value;
+            const all = await fetchSuggestions(selected);
+            const match = all.find(p => p.label === selected);
+            // Ne plus appeler handlePlaceSelection automatiquement ici
+            // if (match) {
+            //     handlePlaceSelection(match);
+            // }
+        });
+
+        async function handlePlaceSelection(placeData) {
+            const color = '#ff6b6b';
+            if (placeData.type === 'country' || /country|nation/.test(placeData.type)) {
+                const circle = L.circle([placeData.lat, placeData.lon], {
+                    radius: 300000,
+                    fillColor: color,
+                    color,
+                    fillOpacity: 0.3
+                }).addTo(map);
+                countryLayers.push(circle);
+            } else {
+                const marker = L.circleMarker([placeData.lat, placeData.lon], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                cityMarkers.push(marker);
+            }
+            map.setView([placeData.lat, placeData.lon], placeData.type === 'city' ? 8 : 4);
+        }
+
         // Supprimer un lieu
         window.deletePlace = async function(placeId) {
             if (!confirm('Êtes-vous sûr de vouloir supprimer ce lieu ?')) return;
@@ -742,6 +910,31 @@
             } else {
                 window.location.href = "admin.html";
             }
+        });
+        // --- Custom toggle visual switching ---
+        // Highlight the active toggle when the radio changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleCity = document.getElementById('toggleCity');
+            const toggleCountry = document.getElementById('toggleCountry');
+            const radios = document.querySelectorAll('input[name="placeType"]');
+            function updateToggle() {
+                if (radios[0].checked) {
+                    toggleCity.style.background = "#ff6b6b";
+                    toggleCity.style.color = "white";
+                    toggleCountry.style.background = "transparent";
+                    toggleCountry.style.color = "#2c3e50";
+                } else {
+                    toggleCity.style.background = "transparent";
+                    toggleCity.style.color = "#2c3e50";
+                    toggleCountry.style.background = "#ff6b6b";
+                    toggleCountry.style.color = "white";
+                }
+            }
+            radios.forEach(radio => {
+                radio.addEventListener('change', updateToggle);
+            });
+            // Initial update
+            updateToggle();
         });
     </script>
 </body>
