@@ -618,6 +618,11 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 loadConversations();
+                // Force a full reload once to ensure freshness
+                if (!window.location.hash.includes("#reloaded")) {
+                    window.location.replace(window.location.href + "#reloaded");
+                    window.location.reload();
+                }
             } else {
                 window.location.href = "admin.html";
             }

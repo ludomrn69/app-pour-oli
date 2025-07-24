@@ -1289,6 +1289,11 @@
             } else {
                 window.location.href = "admin.html";
             }
+            // Force a full reload once to ensure freshness
+            if (!window.location.hash.includes("#reloaded")) {
+                window.location.replace(window.location.href + "#reloaded");
+                window.location.reload();
+            }
         });
         // --- Custom toggle visual switching ---
         // Highlight the active toggle when the radio changes

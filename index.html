@@ -617,6 +617,11 @@
         navMenu.style.display = "none";
       }
     });
+    // Force a full reload once to ensure freshness
+    if (!window.location.hash.includes("#reloaded")) {
+      window.location.replace(window.location.href + "#reloaded");
+      window.location.reload();
+    }
 </script>
 <script>
     function updateDateTime() {

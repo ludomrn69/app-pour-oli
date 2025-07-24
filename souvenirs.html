@@ -532,11 +532,6 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Reload page once by appending hash to URL
-        if (!window.location.hash.includes("#reloaded")) {
-            window.location.replace(window.location.href + "#reloaded");
-            window.location.reload();
-        }
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
@@ -715,6 +710,11 @@
         const auth = getAuth();
 
         onAuthStateChanged(auth, user => {
+            // Force a full reload once to ensure freshness
+            if (!window.location.hash.includes("#reloaded")) {
+                window.location.replace(window.location.href + "#reloaded");
+                window.location.reload();
+            }
             if (user) {
                 loadMemories();
             } else {
