@@ -933,6 +933,7 @@
                     messageDiv.innerHTML = '<div class="success-message">Souvenir modifié avec succès ! ✨</div>';
                     resetMemoryForm();
                     renderDeletableItems("memories", "deleteMemoriesList");
+                    window.location.reload();
                 } else {
                     // Mode ajout
                     let photoURLs = [];
@@ -1006,6 +1007,7 @@
                     messageDiv.innerHTML = '<div class="success-message">Conversation modifiée avec succès ! 💕</div>';
                     resetMessageForm();
                     renderDeletableItems("conversations", "deleteMessagesList");
+                    window.location.reload();
                 } else {
                     // Mode ajout
                     if (!photoFiles || photoFiles.length === 0) {
