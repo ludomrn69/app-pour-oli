@@ -37,6 +37,21 @@
     <link rel="preconnect" href="https://firebasestorage.googleapis.com">
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <style>
+        .memory-photo-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+            margin-top: 10px;
+        }
+
+        .memory-photo-group img {
+            flex: 1 1 120px;
+            max-width: calc(33% - 10px);
+            height: auto;
+            border-radius: 10px;
+            object-fit: cover;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -580,9 +595,13 @@
                                 images = [data.photoURL];
                             }
                         }
-                        return images.map(url => `
-                            <img src="${url}" class="conversation-image" alt="${data.description}">
-                        `).join('');
+                        return `
+                            <div class="memory-photo-group">
+                                ${images.map(url => `
+                                    <img src="${url}" class="conversation-image" alt="${data.description}">
+                                `).join('')}
+                            </div>
+                        `;
                     })()}
                 `;
 

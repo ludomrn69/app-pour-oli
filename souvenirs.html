@@ -637,6 +637,17 @@
                 locationFilter.appendChild(opt);
             });
 
+            // Restore selected location from localStorage if available
+            const savedLocation = localStorage.getItem("selectedLocation");
+            if (savedLocation && savedLocation !== "") {
+                const option = Array.from(locationFilter.options).find(opt => opt.value === savedLocation);
+                if (option && locationFilter.value !== savedLocation) {
+                    locationFilter.value = savedLocation;
+                }
+            } else {
+                locationFilter.value = "";
+            }
+
             sortedDocs.forEach(({ data }) => {
                 const dateObj = new Date(data.date);
                 const selectedYear = yearFilter.value;
@@ -647,8 +658,14 @@
                     (selectedMonth !== '' && dateObj.getMonth().toString() !== selectedMonth)) {
                     return;
                 }
-                if (selectedLocation && (!data.location || data.location.trim() !== selectedLocation.trim())) {
-                    return;
+
+                console.log("📍 Test:", data.location, "vs", selectedLocation);
+
+                if (
+                  selectedLocation &&
+                  (!data.location || data.location.trim().toLowerCase() !== selectedLocation.trim().toLowerCase())
+                ) {
+                  return;
                 }
 
                 const formattedDate = dateObj.toLocaleDateString('fr-FR', {
@@ -730,16 +747,6 @@
 
         const auth = getAuth();
 
-onAuthStateChanged(auth, user => {
-    // Force a full reload once to ensure freshness
-    if (!window.location.hash.includes("#reloaded")) {
-        window.location.replace(window.location.href + "#reloaded");
-        window.location.reload();
-    }
-    if (!user) {
-        window.location.href = "admin.html";
-    }
-});
 
         import { signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
@@ -762,21 +769,9 @@ onAuthStateChanged(auth, user => {
             loadMemories();
         });
 
-// Préremplir les filtres depuis localStorage (après chargement DOM)
+// Lancer le chargement des souvenirs après chargement du DOM
 window.addEventListener("DOMContentLoaded", () => {
-    const savedLocation = localStorage.getItem("selectedLocation");
-
-    setTimeout(() => {
-        const locationFilter = document.getElementById("locationFilter");
-        if (savedLocation) {
-            const option = Array.from(locationFilter.options).find(opt => opt.value === savedLocation);
-            if (option) {
-                locationFilter.value = savedLocation;
-                locationFilter.dispatchEvent(new Event("change"));
-            }
-        }
-        loadMemories();
-    }, 300);
+    loadMemories();
 });
 
         // Responsive navigation toggle
