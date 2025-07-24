@@ -35,15 +35,6 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     
     <style>
-        /* Sliding sidebar animation for mobile menu */
-        #navbarNav {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        #navbarNav.show {
-            max-height: 500px;
-        }
         /* Toggle souvenirs/messages - curved colorful design */
         #toggleContainer {
           margin-top: 40px !important;
@@ -90,7 +81,7 @@
             padding: 20px;
         }
 
-        /* --- Navbar Styles (Souvenirs Menu Matching) --- */
+        /* --- Navbar Styles (Messages Menu Matching) --- */
         .navbar {
           position: fixed;
           top: 0;
@@ -111,14 +102,12 @@
           display: flex;
           align-items: center;
           gap: 10px;
-          width: 100%;
-          justify-content: space-between;
         }
 
         .navbar-brand {
-          font-size: 20px;
-          font-weight: 800;
-          background: linear-gradient(90deg, #ff6b6b 10%, #feca57 40%, #1dd1a1 70%, #48dbfb 100%);
+          font-size: 18px;
+          font-weight: 700;
+          background: linear-gradient(to right, #ff6b6b, #feca57, #48dbfb);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -128,8 +117,8 @@
           display: none;
           background: none;
           border: none;
-          font-size: 26px;
-          padding: 4px 12px;
+          font-size: 24px;
+          padding: 4px 10px;
           cursor: pointer;
           color: #ff6b6b;
           border-radius: 8px;
@@ -137,7 +126,7 @@
         }
         #toggleMenu:active,
         #toggleMenu:focus {
-          background: rgba(255, 107, 107, 0.12);
+          background: rgba(255, 107, 107, 0.1);
           outline: none;
         }
 
@@ -148,6 +137,7 @@
           list-style: none;
           align-items: center;
           margin: 0;
+          padding: 0;
         }
 
         .navbar-nav li {
@@ -158,77 +148,68 @@
           text-decoration: none;
           color: #2c3e50;
           font-weight: 500;
-          padding: 8px 18px;
+          padding: 8px 16px;
           border-radius: 20px;
-          transition: all 0.25s cubic-bezier(.4,0,.2,1);
-          font-size: 15px;
+          transition: all 0.3s ease;
+          font-size: 14px;
           display: inline-block;
         }
         .nav-link:hover {
-          background: rgba(255, 107, 107, 0.12);
+          background: rgba(255, 107, 107, 0.1);
           color: #ff6b6b;
           transform: translateY(-1px);
         }
         .nav-link.active {
           background: linear-gradient(135deg, #ff6b6b, #feca57);
-          color: #fff;
-          box-shadow: 0 3px 10px rgba(255, 107, 107, 0.15);
+          color: white;
+          box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
         }
 
         @media (max-width: 800px) {
-          .navbar {
-            flex-direction: column;
-            align-items: stretch;
-            padding: 8px 10px;
-          }
-          .navbar-brand {
-            font-size: 17px;
-          }
-          #toggleMenu {
-            display: block;
-          }
-          .navbar-nav {
-            flex-direction: column;
-            width: 100%;
-            gap: 10px;
-            margin-top: 8px;
-            margin-bottom: 4px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-          }
-
-          .navbar-nav.show {
-            max-height: 500px;
-          }
-
-          .navbar-nav li {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-          }
-          .nav-link {
-            width: 100%;
-            display: block;
-          }
-          .nav-link.active {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            color: white;
-            border-radius: 40px;
-            box-shadow: 0 4px 14px rgba(255, 107, 107, 0.25);
-            width: 100%;
-            padding: 12px 24px;
-            text-align: left;
-            margin: 4px 0;
-          }
-          .nav-link:hover {
-            width: 100%;
-            padding: 12px 24px;
-            border-radius: 40px;
-            background: rgba(255, 107, 107, 0.1);
-            color: #ff6b6b;
-          }
+            .navbar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px 10px;
+            }
+            .navbar-brand-wrapper {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .navbar-nav {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+                margin-top: 8px;
+                margin-bottom: 4px;
+                display: none;
+            }
+            .navbar-nav li {
+                width: 100%;
+            }
+            .nav-link {
+                width: 100%;
+                text-align: left;
+                font-size: 15px;
+                padding: 10px 18px;
+            }
+            #toggleMenu {
+                display: block;
+            }
+        }
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 6px 3vw;
+            }
+            .navbar-brand {
+                font-size: 16px;
+            }
+            .nav-link {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            body {
+                padding-top: 60px;
+            }
         }
 
         .main-container {
@@ -1033,9 +1014,41 @@
         
     </script>
   <script>
+    // Responsive navigation toggle
     document.getElementById("toggleMenu").addEventListener("click", () => {
       const nav = document.getElementById("navbarNav");
-      nav.classList.toggle("show");
+      if (nav.style.display === "flex") {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "column";
+      }
+    });
+    // On load, hide nav menu on small screens
+    function handleResizeNav() {
+      const nav = document.getElementById("navbarNav");
+      if (window.innerWidth <= 800) {
+        nav.style.display = "none";
+      } else {
+        nav.style.display = "flex";
+        nav.style.flexDirection = "row";
+      }
+    }
+    window.addEventListener("resize", handleResizeNav);
+    window.addEventListener("DOMContentLoaded", handleResizeNav);
+
+    // Close menu if clicking outside (on body)
+    document.body.addEventListener('click', function (e) {
+      const toggleButton = document.getElementById("toggleMenu");
+      const navMenu = document.getElementById("navbarNav");
+      if (
+        window.innerWidth <= 800 &&
+        navMenu.style.display === "flex" &&
+        !toggleButton.contains(e.target) &&
+        !navMenu.contains(e.target)
+      ) {
+        navMenu.style.display = "none";
+      }
     });
   </script>
 </body>
