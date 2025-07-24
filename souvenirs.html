@@ -38,6 +38,20 @@
     <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
  
     <style>
+      .memory-photo-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-start;
+      }
+
+      .memory-photo-group img {
+        flex: 1 1 120px;
+        max-width: calc(33% - 10px);
+        height: auto;
+        border-radius: 10px;
+        object-fit: cover;
+      }
       * {
         margin: 0;
         padding: 0;
@@ -652,9 +666,11 @@
                     </div>
                     <div class="memory-content">
                         <p class="memory-text">${data.description}</p>
-                        ${(data.photoURLs || []).map(url => `
-                            <img src="${url}" alt="${data.title}" class="memory-photo">
-                        `).join('')}
+                        <div class="memory-photo-group">
+                          ${(data.photoURLs || []).map(url => `
+                            <img src="${url}" alt="${data.title}">
+                          `).join('')}
+                        </div>
                         <div class="memory-footer">
                             ${data.location ? `<span class="pill">📍 ${data.location}</span>` : ''}
                             <span class="pill pill-grey">${formattedDate}</span>
