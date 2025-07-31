@@ -25,22 +25,22 @@ const USERS = {
  * description, createdBy...).
  * @return {Promise} Une promesse de l'envoi d'e-mail via SendGrid.
  */
-function sendEmailNotification(type, data) {
+async function sendEmailNotification(type, data) {
   const fromUser = data.createdBy;
-  const toUsers = Object.keys(USERS);
+  const toUsers = ["ludovicmarion70@gmail.com", "obegoud@gmail.com"];
 
   let subject;
   if (type === "memories") {
-    subject = "Nouveau souvenir ajouté ✨";
+    subject = "Un nouveau souvenir a été partagé sur votre espace Oli & Ludo";
   } else {
-    subject = "Nouvelle conversation 💬";
+    subject = "Une nouvelle conversation a été ajoutée sur votre espace Oli & Ludo";
   }
 
   let link;
   if (type === "memories") {
-    link = "https://olietludo.netlify.app/souvenirs";
+    link = "https://Olitludo.netlify.app/souvenirs";
   } else {
-    link = "https://olietludo.netlify.app/messages";
+    link = "https://Olitludo.netlify.app/messages";
   }
 
   const typeLabel = type === "memories" ? "souvenir" : "message";
@@ -50,26 +50,44 @@ function sendEmailNotification(type, data) {
     "border-radius:8px; text-decoration:none;",
   ].join(" ");
 
-  const html = `
-<p>Hey 👋</p>
-<p><strong>${fromUser}</strong> a ajouté un nouveau ${typeLabel} !</p>
-<p><strong>Titre :</strong> ${data.title}</p>
-<p><strong>Description :</strong><br/>${data.description}</p>
-<p>
-  <a href="${link}" style="${linkStyle}">
-    Voir sur le site ❤️
-  </a>
-</p>
-`;
-
   const msg = {
     to: toUsers,
     from: "ludovicmarion70@gmail.com",
     subject,
-    html,
+    text: `Bonjour,
+
+${fromUser} vient de partager un nouveau ${typeLabel} sur votre espace personnel Oli & Ludo.
+
+Détails :
+Titre : ${data.title}
+
+Description :
+${data.description}
+
+Vous pouvez consulter ce contenu en vous rendant sur votre espace via le lien suivant :
+${link}
+
+Ceci est un message automatique généré par la plateforme Oli & Ludo.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto;">
+        <h2 style="color: #444;">Un nouveau ${typeLabel} a été partagé</h2>
+        <p>Bonjour,</p>
+        <p><strong>${fromUser}</strong> a récemment partagé un nouveau ${typeLabel} sur votre espace personnel <strong>Oli & Ludo</strong>.</p>
+        <p><strong>Titre :</strong> ${data.title}</p>
+        <p><strong>Description :</strong></p>
+        <p style="background: #f9f9f9; padding: 10px; border-left: 4px solid #ccc;">${data.description}</p>
+        <p style="margin-top: 20px;">
+          <a href="${link}" style="${linkStyle}">
+            Accéder au contenu sur la plateforme
+          </a>
+        </p>
+        <hr style="margin: 30px 0;"/>
+        <p style="font-size: 0.9em; color: #888;">Ce message a été généré automatiquement par la plateforme Oli & Ludo. Merci de ne pas y répondre directement.</p>
+      </div>
+    `,
   };
 
-  return sgMail.sendMultiple(msg);
+  return sgMail.send(msg);
 }
 
 /**
