@@ -27,8 +27,7 @@ const USERS = {
  */
 function sendEmailNotification(type, data) {
   const fromUser = data.createdBy;
-  const toUser = USERS[fromUser];
-  if (!toUser) return null;
+  const toUsers = Object.keys(USERS);
 
   let subject;
   if (type === "memories") {
@@ -64,13 +63,13 @@ function sendEmailNotification(type, data) {
 `;
 
   const msg = {
-    to: toUser,
+    to: toUsers,
     from: "noreply@olietludo.com",
     subject,
     html,
   };
 
-  return sgMail.send(msg);
+  return sgMail.sendMultiple(msg);
 }
 
 /**
