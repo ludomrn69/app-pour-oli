@@ -8,14 +8,9 @@ initializeApp();
 // Configuration SendGrid - utilise .env en local et
 // functions.config() en production
 const sendGridKey = process.env.SENDGRID_KEY ||
-  (functions.config().sendgrid && functions.config().sendgrid.key);
+  (functions.config().sendgrid &&
+  functions.config().sendgrid.key);
 sgMail.setApiKey(sendGridKey);
-
-// Mapping des emails
-const USERS = {
-  "ludovicmarion70@gmail.com": "obegoud@gmail.com",
-  "obegoud@gmail.com": "ludovicmarion70@gmail.com",
-};
 
 /**
  * Envoie un e-mail via SendGrid à l'autre utilisateur quand un souvenir ou une
@@ -54,35 +49,34 @@ async function sendEmailNotification(type, data) {
     to: toUsers,
     from: "ludovicmarion70@gmail.com",
     subject,
-    text: `Bonjour,
-
-${fromUser} vient de partager un nouveau ${typeLabel} sur votre espace personnel Oli & Ludo.
-
-Détails :
-Titre : ${data.title}
-
-Description :
-${data.description}
-
-Vous pouvez consulter ce contenu en vous rendant sur votre espace via le lien suivant :
-${link}
-
-Ceci est un message automatique généré par la plateforme Oli & Ludo.`,
+    text: "Bonjour,\n\n" +
+      fromUser + " vient de partager un nouveau " + typeLabel +
+      " sur votre espace personnel Oli & Ludo.\n\nDétails :\nTitre : " +
+      data.title + "\n\nDescription :\n" + data.description +
+      "\n\nVous pouvez consulter ce contenu en vous rendant sur votre espace " +
+      "via le lien suivant :\n" + link + "\n\nCeci est un message automatique " +
+      "généré par la plateforme Oli & Ludo.",
     html: `
       <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto;">
         <h2 style="color: #444;">Un nouveau ${typeLabel} a été partagé</h2>
         <p>Bonjour,</p>
-        <p><strong>${fromUser}</strong> a récemment partagé un nouveau ${typeLabel} sur votre espace personnel <strong>Oli & Ludo</strong>.</p>
+        <p><strong>${fromUser}</strong> a récemment partagé un nouveau ${typeLabel} sur votre
+        espace personnel <strong>Oli & Ludo</strong>.</p>
         <p><strong>Titre :</strong> ${data.title}</p>
         <p><strong>Description :</strong></p>
-        <p style="background: #f9f9f9; padding: 10px; border-left: 4px solid #ccc;">${data.description}</p>
+        <p style="background: #f9f9f9; padding: 10px; border-left: 4px solid #ccc;">
+          ${data.description}
+        </p>
         <p style="margin-top: 20px;">
           <a href="${link}" style="${linkStyle}">
             Accéder au contenu sur la plateforme
           </a>
         </p>
         <hr style="margin: 30px 0;"/>
-        <p style="font-size: 0.9em; color: #888;">Ce message a été généré automatiquement par la plateforme Oli & Ludo. Merci de ne pas y répondre directement.</p>
+        <p style="font-size: 0.9em; color: #888;">
+          Ce message a été généré automatiquement par la plateforme Oli & Ludo. Merci
+          de ne pas y répondre directement.
+        </p>
       </div>
     `,
   };
