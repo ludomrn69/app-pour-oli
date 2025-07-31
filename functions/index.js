@@ -64,7 +64,7 @@ function sendEmailNotification(type, data) {
 
   const msg = {
     to: toUsers,
-    from: "noreply@olietludo.com",
+    from: "ludovicmarion70@gmail.com",
     subject,
     html,
   };
