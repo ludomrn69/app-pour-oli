@@ -12,7 +12,7 @@
         script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://unpkg.com https://apis.google.com;
         style-src 'self' 'unsafe-inline' https://unpkg.com;
         img-src 'self' data: https://firebasestorage.googleapis.com https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://joko-mobile-app-media.s3.eu-west-1.amazonaws.com;
-        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://nominatim.openstreetmap.org https://raw.githubusercontent.com;
+        connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://nominatim.openstreetmap.org https://raw.githubusercontent.com https://geo.api.gouv.fr;
         font-src 'self' data:;
         object-src 'none';
     ">
@@ -682,8 +682,8 @@
                     // Nouvelle logique enrichissement France
                     // let region = match.address?.region || match.address?.state || 'Inconnu';
                     // let department = match.address?.county?.replace("Métropole de ", "") || 'Inconnu';
-                    let region = 'Inconnu';
-                    let department = 'Inconnu';
+                    let region = match.address?.region || match.address?.state || 'Inconnu';
+                    let department = (match.address?.county?.replace("Métropole de ", "") || match.address?.state_district || 'Inconnu');
 
                     // Remplacer la condition France par un fetch inconditionnel
                     try {
